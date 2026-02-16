@@ -124,7 +124,7 @@ export default function GrowthDashboard() {
               Core Metric — Revenue per 1,000 Followers ({knownChannels}/8 channels tracked)
             </div>
             <div style={{ fontFamily: "'Space Grotesk'", fontSize: 42, fontWeight: 700, color: "#22C55E" }}>${revPer1K}</div>
-            <div style={{ fontSize: 11, color: "#71717A", marginTop: 4 }}>Based on {fmtK(knownFollowers)} tracked followers across YouTube + TikTok + IG</div>
+            <div style={{ fontSize: 11, color: "#71717A", marginTop: 4 }}>Based on {fmtK(knownFollowers)} tracked followers across {knownChannels} channels</div>
           </div>
           <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
             <div style={{ textAlign: "center" }}>
@@ -139,7 +139,7 @@ export default function GrowthDashboard() {
             <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.06)" }} />
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 9, color: "#52525B", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Pending</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: "#F59E0B", fontFamily: "'Space Grotesk'" }}>5</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#F59E0B", fontFamily: "'Space Grotesk'" }}>{CHANNELS.length - knownChannels}</div>
               <div style={{ fontSize: 9, color: "#52525B" }}>channels need input</div>
             </div>
           </div>
