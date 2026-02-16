@@ -202,13 +202,9 @@ export default function GrowthDashboard() {
             }}>
               <span style={{ fontSize: 18, marginTop: 2 }}>⚡</span>
               <div>
-                <div style={{ fontSize: 12, color: "#F59E0B", fontWeight: 600, marginBottom: 6 }}>5 channels need your input (30 seconds)</div>
+                <div style={{ fontSize: 12, color: "#F59E0B", fontWeight: 600, marginBottom: 6 }}>1 channel pending</div>
                 <div style={{ fontSize: 11, color: "#A1A1AA", lineHeight: 1.6 }}>
-                  <strong style={{ color: "#E4E4E7" }}>Substack:</strong> Go to Dashboard → Home → subscriber count<br/>
-                  <strong style={{ color: "#E4E4E7" }}>X / Twitter:</strong> Check @holdmybirra profile → followers<br/>
-                  <strong style={{ color: "#E4E4E7" }}>LinkedIn:</strong> Company page admin → Analytics → followers<br/>
-                  <strong style={{ color: "#E4E4E7" }}>Spotify:</strong> Spotify for Podcasters → Dashboard → followers<br/>
-                  <strong style={{ color: "#E4E4E7" }}>Apple Podcasts:</strong> Apple Podcasts Connect → Show analytics
+                  <strong style={{ color: "#E4E4E7" }}>Apple Podcasts:</strong> Apple Podcasts Connect → Show analytics → follower count
                 </div>
               </div>
             </div>
