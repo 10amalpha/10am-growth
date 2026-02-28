@@ -124,7 +124,7 @@ export default function GrowthDashboard(){
               {[{l:"$150K ARR",a:12500},{l:"$200K ARR",a:16667},{l:"$250K ARR",a:20833},{l:"$300K ARR",a:25000},{l:"$350K ARR",a:29167},{l:"$400K ARR",a:33333},{l:"$500K ARR",a:41667}].map((m,i)=>{const reached=(latestPnl.totalRev||0)>=m.a;const p=Math.min(((latestPnl.totalRev||0)/m.a)*100,100);return(<div key={i} style={{marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:11,color:reached?"#22C55E":"#52525B",fontWeight:reached?600:400}}>{reached?"✓ ":"○ "}{m.l}</span><span style={{fontSize:10,color:"#3F3F46"}}>{fmt(m.a)}/mo</span></div><div style={{height:3,background:"rgba(255,255,255,0.03)",borderRadius:2}}><div style={{height:3,borderRadius:2,background:reached?"#22C55E":"rgba(34,197,94,0.3)",width:`${p}%`}}/></div></div>)})}
               <div style={{marginTop:16,padding:"12px 14px",background:"rgba(212,168,67,0.04)",border:"1px solid rgba(212,168,67,0.1)",borderRadius:8}}>
                 <div style={{fontSize:10,color:"#D4A843",fontWeight:600,marginBottom:4}}>Projection</div>
-                <div style={{fontSize:11,color:"#A1A1AA",lineHeight:1.6}}>{avgMonthlyGrowth>0?<>At +{fmt(avgMonthlyGrowth)}/mo growth → $500K in <span style={{color:"#22C55E",fontWeight:700}}>~{monthsToTarget} months</span></>:<>Need more data to project.</>}</div>
+                <div style={{fontSize:11,color:"#A1A1AA",lineHeight:1.6}}>{avgGrowth>0?<>At +{fmt(avgGrowth)}/mo growth → $500K in <span style={{color:"#22C55E",fontWeight:700}}>~{monthsToTarget} months</span></>:<>Need more data to project.</>}</div>
               </div>
             </div>
           </div>
