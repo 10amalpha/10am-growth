@@ -5,6 +5,7 @@ import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 import { CH_META, STREAMS, STRATEGY_PATHS, PNL_REVENUE, PNL_EXPENSES, PNL_DATA, fmt, fmtK, fmtMonth, fmtMonthFull } from "./data";
 
 const pct=(a,b)=>b?((a-b)/b*100).toFixed(1):"—";
+const useIsMobile=()=>{const[m,setM]=useState(false);useEffect(()=>{const c=()=>setM(window.innerWidth<768);c();window.addEventListener("resize",c);return()=>window.removeEventListener("resize",c)},[]);return m;};
 const TT=({active,payload,label})=>{if(!active||!payload?.length)return null;return(<div style={{background:"rgba(8,10,15,0.96)",border:"1px solid rgba(34,197,94,0.25)",borderRadius:8,padding:"10px 14px",fontSize:11,fontFamily:"'JetBrains Mono',monospace"}}><p style={{color:"#22C55E",marginBottom:6,fontWeight:600,fontSize:12}}>{label}</p>{payload.map((p,i)=>(<p key={i} style={{color:p.color||"#A1A1AA",margin:"2px 0"}}>{p.name}: <span style={{fontWeight:700}}>{typeof p.value==="number"&&p.dataKey!=="margin"?fmt(p.value):p.value+(p.dataKey==="margin"?"%":"")}</span></p>))}</div>)};
 
 export default function GrowthDashboard(){
@@ -62,6 +63,7 @@ export default function GrowthDashboard(){
   const iS={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"8px 10px",color:"#E4E4E7",fontSize:13,fontFamily:"'JetBrains Mono',monospace",width:"100%",outline:"none"};
   const TABS=[{key:"tracker",label:"🏁 $500K"},{key:"strategy",label:"🎯 Strategy"},{key:"emailfirst",label:"📧 Estrategia"},{key:"pnl",label:"💵 P&L"},{key:"followers",label:"📈 Followers"},{key:"velocity",label:"🚀 Velocity"},{key:"revenue",label:"💰 Revenue"},{key:"profit",label:"📊 Profit"},{key:"model",label:"🔮 Model"},{key:"admin",label:"⚙️ Admin"}];
   const[efSection,setEfSection]=useState("overview");
+  const mob=useIsMobile();
 
   if(loading)return(<div style={{minHeight:"100vh",background:"#08090D",display:"flex",alignItems:"center",justifyContent:"center",color:"#22C55E",fontFamily:"'JetBrains Mono',monospace"}}>Loading...</div>);
 
@@ -155,41 +157,40 @@ export default function GrowthDashboard(){
 
         {/* ════ 📧 ESTRATEGIA EMAIL FIRST ════ */}
         {view==="emailfirst"&&(()=>{
-          const EF_SECTIONS=[{key:"overview",label:"📊 Estado Actual"},{key:"decision",label:"⚡ La Decisión"},{key:"unconverted",label:"🎯 Audiencias $0"},{key:"funnel",label:"📈 Funnel Model"},{key:"playbook",label:"🗺️ Playbook"},{key:"comparison",label:"⚖️ Comparativo"}];
-          const EfMetric=({label,value,sub,accent="#22C55E"})=>(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:"12px",textAlign:"center"}}><div style={{fontSize:8,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4}}>{label}</div><div style={{fontSize:18,fontWeight:700,color:accent,fontFamily:"'Space Grotesk'"}}>{value}</div>{sub&&<div style={{fontSize:9,color:"#52525B",marginTop:3}}>{sub}</div>}</div>);
+          const EF_SECTIONS=[{key:"overview",label:"📊 Estado"},{key:"decision",label:"⚡ Decisión"},{key:"unconverted",label:"🎯 $0"},{key:"funnel",label:"📈 Funnel"},{key:"playbook",label:"🗺️ Plan"},{key:"comparison",label:"⚖️ vs"}];
+          const EfMetric=({label,value,sub,accent="#22C55E"})=>(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:mob?"10px 8px":"12px",textAlign:"center",minWidth:0}}><div style={{fontSize:mob?7:8,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:3}}>{label}</div><div style={{fontSize:mob?15:18,fontWeight:700,color:accent,fontFamily:"'Space Grotesk'"}}>{value}</div>{sub&&<div style={{fontSize:mob?8:9,color:"#52525B",marginTop:2}}>{sub}</div>}</div>);
           const EfBar=({label,value,max,color="#22C55E",suffix=""})=>{const p=Math.min((value/max)*100,100);return(<div style={{marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><span style={{fontSize:10,color:"#71717A"}}>{label}</span><span style={{fontSize:10,fontWeight:700,color}}>{typeof value==="number"?fmt(value):value}{suffix}</span></div><div style={{height:6,background:"rgba(255,255,255,0.04)",borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,background:color,width:`${p}%`,transition:"width 0.5s"}}/></div></div>);};
           return(<div>
             {/* Header */}
-            <div style={{background:"linear-gradient(135deg,rgba(34,197,94,0.04),rgba(212,168,67,0.03))",border:"1px solid rgba(34,197,94,0.1)",borderRadius:12,padding:"16px 24px",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-              <div style={{display:"flex",alignItems:"center",gap:12}}>
-                <span style={{fontFamily:"'Space Grotesk'",fontSize:22,fontWeight:800,color:"#22C55E"}}>EMAIL FIRST</span>
+            <div style={{background:"linear-gradient(135deg,rgba(34,197,94,0.04),rgba(212,168,67,0.03))",border:"1px solid rgba(34,197,94,0.1)",borderRadius:12,padding:mob?"12px 14px":"16px 24px",marginBottom:16,display:"flex",flexDirection:mob?"column":"row",alignItems:mob?"flex-start":"center",justifyContent:"space-between",gap:mob?8:12}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <span style={{fontFamily:"'Space Grotesk'",fontSize:mob?18:22,fontWeight:800,color:"#22C55E"}}>EMAIL FIRST</span>
                 <span style={{background:"rgba(34,197,94,0.1)",color:"#22C55E",padding:"2px 8px",borderRadius:4,fontSize:8,fontWeight:700,letterSpacing:"0.1em"}}>ENE 2026</span>
               </div>
-              <div style={{display:"flex",alignItems:"center",gap:16,fontSize:10}}>
-                <span style={{color:"#52525B"}}>Revenue: <span style={{color:"#22C55E",fontWeight:700}}>$12,848/mo</span></span>
+              <div style={{display:"flex",alignItems:"center",gap:mob?8:16,fontSize:mob?9:10,flexWrap:"wrap"}}>
+                <span style={{color:"#52525B"}}>Rev: <span style={{color:"#22C55E",fontWeight:700}}>$12.8K</span></span>
                 <span style={{color:"#3F3F46"}}>→</span>
-                <span style={{color:"#52525B"}}>Meta: <span style={{color:"#D4A843",fontWeight:700}}>$41,667/mo</span></span>
-                <span style={{color:"#3F3F46"}}>|</span>
+                <span style={{color:"#52525B"}}>Meta: <span style={{color:"#D4A843",fontWeight:700}}>$41.7K</span></span>
                 <span style={{color:"#818CF8",fontWeight:700}}>$500K ARR</span>
               </div>
             </div>
 
             {/* Sub-tabs */}
-            <div style={{display:"flex",gap:4,marginBottom:16,flexWrap:"wrap"}}>
-              {EF_SECTIONS.map(s=>(<button key={s.key} onClick={()=>setEfSection(s.key)} style={{background:efSection===s.key?"rgba(34,197,94,0.08)":"transparent",border:efSection===s.key?"1px solid rgba(34,197,94,0.2)":"1px solid transparent",color:efSection===s.key?"#22C55E":"#3F3F46",padding:"5px 12px",borderRadius:5,fontSize:10,cursor:"pointer",fontFamily:"inherit",fontWeight:efSection===s.key?600:400}}>{s.label}</button>))}
+            <div style={{display:"flex",gap:3,marginBottom:16,flexWrap:"wrap",overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+              {EF_SECTIONS.map(s=>(<button key={s.key} onClick={()=>setEfSection(s.key)} style={{background:efSection===s.key?"rgba(34,197,94,0.08)":"transparent",border:efSection===s.key?"1px solid rgba(34,197,94,0.2)":"1px solid transparent",color:efSection===s.key?"#22C55E":"#3F3F46",padding:mob?"4px 8px":"5px 12px",borderRadius:5,fontSize:mob?9:10,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,fontFamily:"inherit",fontWeight:efSection===s.key?600:400}}>{s.label}</button>))}
             </div>
 
             {/* ── OVERVIEW ── */}
             {efSection==="overview"&&(<div>
               {/* Revenue Gap Bar */}
-              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px 24px",marginBottom:16}}>
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:mob?"14px":"20px 24px",marginBottom:16}}>
                 <div style={{fontSize:9,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Revenue Gap Analysis</div>
-                <div style={{display:"flex",alignItems:"center",gap:20,marginBottom:14,flexWrap:"wrap"}}>
-                  <div style={{textAlign:"center"}}><div style={{fontSize:9,color:"#52525B",marginBottom:2}}>Actual</div><div style={{fontSize:26,fontWeight:800,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>$12,848</div><div style={{fontSize:9,color:"#3F3F46"}}>/mes</div></div>
+                <div style={{display:"flex",alignItems:"center",gap:mob?10:20,marginBottom:14,flexWrap:"wrap",justifyContent:mob?"center":"flex-start"}}>
+                  <div style={{textAlign:"center"}}><div style={{fontSize:9,color:"#52525B",marginBottom:2}}>Actual</div><div style={{fontSize:mob?20:26,fontWeight:800,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>$12,848</div><div style={{fontSize:9,color:"#3F3F46"}}>/mes</div></div>
                   <span style={{fontSize:20,color:"#27272A"}}>→</span>
-                  <div style={{textAlign:"center"}}><div style={{fontSize:9,color:"#52525B",marginBottom:2}}>Meta</div><div style={{fontSize:26,fontWeight:800,color:"#D4A843",fontFamily:"'Space Grotesk'"}}>$41,667</div><div style={{fontSize:9,color:"#3F3F46"}}>/mes ($500K ARR)</div></div>
+                  <div style={{textAlign:"center"}}><div style={{fontSize:9,color:"#52525B",marginBottom:2}}>Meta</div><div style={{fontSize:mob?20:26,fontWeight:800,color:"#D4A843",fontFamily:"'Space Grotesk'"}}>$41,667</div><div style={{fontSize:9,color:"#3F3F46"}}>/mes ($500K ARR)</div></div>
                   <span style={{fontSize:20,color:"#27272A"}}>=</span>
-                  <div style={{textAlign:"center"}}><div style={{fontSize:9,color:"#52525B",marginBottom:2}}>Gap</div><div style={{fontSize:26,fontWeight:800,color:"#EF4444",fontFamily:"'Space Grotesk'"}}>$28,819</div><div style={{fontSize:9,color:"#3F3F46"}}>/mes faltante</div></div>
+                  <div style={{textAlign:"center"}}><div style={{fontSize:9,color:"#52525B",marginBottom:2}}>Gap</div><div style={{fontSize:mob?20:26,fontWeight:800,color:"#EF4444",fontFamily:"'Space Grotesk'"}}>$28,819</div><div style={{fontSize:9,color:"#3F3F46"}}>/mes faltante</div></div>
                 </div>
                 <div style={{height:14,background:"rgba(255,255,255,0.04)",borderRadius:7,overflow:"hidden",position:"relative"}}>
                   <div style={{height:"100%",borderRadius:7,background:"linear-gradient(90deg,#22C55E,#16a34a)",width:"30.8%"}}/>
@@ -198,7 +199,7 @@ export default function GrowthDashboard(){
               </div>
 
               {/* KPIs */}
-              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
+              <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:mob?8:10,marginBottom:16}}>
                 <EfMetric label="YoY Growth" value="+147%" accent="#22C55E"/>
                 <EfMetric label="Stripe/Substack YoY" value="+3,424%" sub="$210 → $7,400" accent="#818CF8"/>
                 <EfMetric label="YouTube AdSense" value="$5,395" sub="+9% YoY · Plateauing" accent="#F59E0B"/>
@@ -206,25 +207,25 @@ export default function GrowthDashboard(){
               </div>
 
               {/* Revenue Breakdown */}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
-                <div style={{background:"rgba(129,140,248,0.03)",border:"1px solid rgba(129,140,248,0.1)",borderRadius:10,padding:"18px 20px"}}>
+              <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12,marginBottom:16}}>
+                <div style={{background:"rgba(129,140,248,0.03)",border:"1px solid rgba(129,140,248,0.1)",borderRadius:10,padding:mob?"14px":"18px 20px"}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><div style={{width:10,height:10,borderRadius:"50%",background:"#818CF8"}}/><span style={{fontSize:12,fontWeight:600,color:"#E4E4E7"}}>Stripe/Substack</span><span style={{background:"rgba(129,140,248,0.1)",color:"#818CF8",padding:"1px 6px",borderRadius:3,fontSize:8,fontWeight:700}}>58%</span></div>
-                  <div style={{fontSize:24,fontWeight:800,color:"#818CF8",fontFamily:"'Space Grotesk'",marginBottom:2}}>~$7,400/mo</div>
+                  <div style={{fontSize:mob?20:24,fontWeight:800,color:"#818CF8",fontFamily:"'Space Grotesk'",marginBottom:2}}>~$7,400/mo</div>
                   <div style={{fontSize:9,color:"#52525B"}}>+3,424% YoY ($210 → $7,400)</div>
                   <div style={{fontSize:9,color:"#52525B",marginTop:2}}>385 paid subs · ~80 orgánicos/mes</div>
                 </div>
-                <div style={{background:"rgba(239,68,68,0.03)",border:"1px solid rgba(239,68,68,0.1)",borderRadius:10,padding:"18px 20px"}}>
+                <div style={{background:"rgba(239,68,68,0.03)",border:"1px solid rgba(239,68,68,0.1)",borderRadius:10,padding:mob?"14px":"18px 20px"}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><div style={{width:10,height:10,borderRadius:"50%",background:"#EF4444"}}/><span style={{fontSize:12,fontWeight:600,color:"#E4E4E7"}}>YouTube AdSense</span><span style={{background:"rgba(239,68,68,0.1)",color:"#EF4444",padding:"1px 6px",borderRadius:3,fontSize:8,fontWeight:700}}>42%</span></div>
-                  <div style={{fontSize:24,fontWeight:800,color:"#EF4444",fontFamily:"'Space Grotesk'",marginBottom:2}}>$5,395/mo</div>
+                  <div style={{fontSize:mob?20:24,fontWeight:800,color:"#EF4444",fontFamily:"'Space Grotesk'",marginBottom:2}}>$5,395/mo</div>
                   <div style={{fontSize:9,color:"#52525B"}}>+9% YoY · Plateauing</div>
                   <div style={{fontSize:9,color:"#F59E0B",marginTop:2}}>⚠️ Crecimiento estancado</div>
                 </div>
               </div>
 
               {/* Substack Deep */}
-              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:"16px 20px"}}>
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:10,padding:mob?"12px":"16px 20px"}}>
                 <div style={{fontSize:9,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Substack Metrics</div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+                <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:mob?8:10}}>
                   <EfMetric label="Paid Subs" value="385" accent="#22C55E"/>
                   <EfMetric label="ARR" value="$25.6K" accent="#818CF8"/>
                   <EfMetric label="Free→Paid" value="10.3%" accent="#F59E0B"/>
@@ -235,27 +236,27 @@ export default function GrowthDashboard(){
 
             {/* ── LA DECISIÓN ── */}
             {efSection==="decision"&&(<div>
-              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"24px",textAlign:"center",marginBottom:16}}>
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:mob?"16px":"24px",textAlign:"center",marginBottom:16}}>
                 <div style={{fontSize:9,color:"#D4A843",textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:8}}>La Decisión Estratégica</div>
-                <div style={{fontSize:18,fontWeight:800,color:"#E4E4E7",fontFamily:"'Space Grotesk'",marginBottom:8}}>Priorizar captura de emails sobre optimizar conversión paid</div>
+                <div style={{fontSize:mob?15:18,fontWeight:800,color:"#E4E4E7",fontFamily:"'Space Grotesk'",marginBottom:8}}>Priorizar captura de emails sobre optimizar conversión paid</div>
                 <div style={{fontSize:11,color:"#71717A",maxWidth:600,margin:"0 auto",lineHeight:1.7}}>El pool de emails actuales es demasiado pequeño. Optimizar conversión en 3,500 subs tiene retornos decrecientes. El crecimiento real viene de expandir la base.</div>
               </div>
 
               {/* 22x Contrast */}
-              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(212,168,67,0.15)",borderRadius:12,padding:"20px 24px"}}>
-                <div style={{fontSize:9,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Contraste Clave: Revenue por Follower</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                  <div style={{textAlign:"center",padding:"20px",background:"rgba(34,197,94,0.03)",borderRadius:10,border:"1px solid rgba(34,197,94,0.08)"}}>
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(212,168,67,0.15)",borderRadius:12,padding:mob?"14px":"20px 24px"}}>
+                <div style={{fontSize:9,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Revenue por Follower: Revenue por Follower</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:mob?10:16}}>
+                  <div style={{textAlign:"center",padding:mob?"14px 8px":"20px",background:"rgba(34,197,94,0.03)",borderRadius:10,border:"1px solid rgba(34,197,94,0.08)"}}>
                     <div style={{fontSize:24,marginBottom:4}}>📧</div>
                     <div style={{fontSize:11,color:"#71717A",marginBottom:6}}>Substack</div>
-                    <div style={{fontSize:36,fontWeight:800,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>$2.11</div>
+                    <div style={{fontSize:mob?28:36,fontWeight:800,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>$2.11</div>
                     <div style={{fontSize:9,color:"#52525B",marginTop:2}}>por follower</div>
                     <div style={{marginTop:8}}><span style={{background:"rgba(34,197,94,0.1)",color:"#22C55E",padding:"2px 8px",borderRadius:4,fontSize:8,fontWeight:700}}>WINNER</span></div>
                   </div>
-                  <div style={{textAlign:"center",padding:"20px",background:"rgba(239,68,68,0.03)",borderRadius:10,border:"1px solid rgba(239,68,68,0.08)"}}>
+                  <div style={{textAlign:"center",padding:mob?"14px 8px":"20px",background:"rgba(239,68,68,0.03)",borderRadius:10,border:"1px solid rgba(239,68,68,0.08)"}}>
                     <div style={{fontSize:24,marginBottom:4}}>📺</div>
                     <div style={{fontSize:11,color:"#71717A",marginBottom:6}}>YouTube</div>
-                    <div style={{fontSize:36,fontWeight:800,color:"#EF4444",fontFamily:"'Space Grotesk'"}}>$0.23</div>
+                    <div style={{fontSize:mob?28:36,fontWeight:800,color:"#EF4444",fontFamily:"'Space Grotesk'"}}>$0.23</div>
                     <div style={{fontSize:9,color:"#52525B",marginTop:2}}>por follower</div>
                     <div style={{marginTop:8}}><span style={{background:"rgba(255,255,255,0.04)",color:"#52525B",padding:"2px 8px",borderRadius:4,fontSize:8,fontWeight:700}}>9.2× menor</span></div>
                   </div>
@@ -266,8 +267,8 @@ export default function GrowthDashboard(){
 
             {/* ── AUDIENCIAS SIN CONVERTIR ── */}
             {efSection==="unconverted"&&(<div>
-              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px 24px",marginBottom:16}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:mob?"14px":"20px 24px",marginBottom:16}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:6}}>
                   <div style={{fontSize:9,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em"}}>Audiencias en Plataformas de $0</div>
                   <span style={{background:"rgba(239,68,68,0.1)",color:"#EF4444",padding:"2px 8px",borderRadius:4,fontSize:8,fontWeight:700}}>87K SIN CONVERTIR</span>
                 </div>
@@ -289,8 +290,8 @@ export default function GrowthDashboard(){
               </div>
 
               {/* Spotify Opportunity */}
-              <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.12)",borderRadius:12,padding:"18px 24px"}}>
-                <div style={{fontSize:9,color:"#D4A843",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>🎧 Spotify: La Oportunidad Más Grande</div>
+              <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.12)",borderRadius:12,padding:mob?"14px":"18px 24px"}}>
+                <div style={{fontSize:9,color:"#D4A843",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>🎧 Spotify: Mayor Oportunidad Más Grande</div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:12}}>
                   <EfMetric label="Audiencia" value="38.6K" accent="#22C55E"/>
                   <EfMetric label="Revenue Actual" value="$53/mo" accent="#EF4444"/>
@@ -302,9 +303,9 @@ export default function GrowthDashboard(){
 
             {/* ── FUNNEL MODEL ── */}
             {efSection==="funnel"&&(<div>
-              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px 24px",marginBottom:16}}>
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:mob?"14px":"20px 24px",marginBottom:16}}>
                 <div style={{fontSize:9,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>IG Boost Funnel — Parámetros del Modelo</div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+                <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(3,1fr)",gap:mob?8:10}}>
                   <EfMetric label="CPM" value="$3-8" sub="Finanzas LATAM" accent="#60A5FA"/>
                   <EfMetric label="CTR" value="1-3%" accent="#22C55E"/>
                   <EfMetric label="Landing Conv." value="15-30%" accent="#F59E0B"/>
@@ -315,17 +316,17 @@ export default function GrowthDashboard(){
               </div>
 
               {/* Projection to 15K */}
-              <div style={{background:"rgba(34,197,94,0.03)",border:"1px solid rgba(34,197,94,0.1)",borderRadius:12,padding:"20px 24px"}}>
+              <div style={{background:"rgba(34,197,94,0.03)",border:"1px solid rgba(34,197,94,0.1)",borderRadius:12,padding:mob?"14px":"20px 24px"}}>
                 <div style={{fontSize:9,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>📈 Proyección a 15K Subs</div>
-                <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:8,marginBottom:16,fontSize:12}}>
-                  {[{t:"15K subs",c:false},{t:"×"},{t:"10% conv",c:false},{t:"="},{t:"1,500 paid",c:true},{t:"×"},{t:"$8/mo",c:false},{t:"="},{t:"$12K MRR",c:true}].map((x,i)=>x.t==="×"||x.t==="="?<span key={i} style={{color:"#3F3F46",fontSize:14}}>{x.t}</span>:<span key={i} style={{background:x.c?"rgba(34,197,94,0.08)":"rgba(255,255,255,0.04)",border:x.c?"1px solid rgba(34,197,94,0.15)":"1px solid rgba(255,255,255,0.06)",color:x.c?"#22C55E":"#A1A1AA",padding:"6px 14px",borderRadius:6,fontWeight:x.c?700:400}}>{x.t}</span>)}
+                <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:mob?4:8,marginBottom:16,fontSize:mob?10:12}}>
+                  {[{t:"15K subs",c:false},{t:"×"},{t:"10% conv",c:false},{t:"="},{t:"1,500 paid",c:true},{t:"×"},{t:"$8/mo",c:false},{t:"="},{t:"$12K MRR",c:true}].map((x,i)=>x.t==="×"||x.t==="="?<span key={i} style={{color:"#3F3F46",fontSize:14}}>{x.t}</span>:<span key={i} style={{background:x.c?"rgba(34,197,94,0.08)":"rgba(255,255,255,0.04)",border:x.c?"1px solid rgba(34,197,94,0.15)":"1px solid rgba(255,255,255,0.06)",color:x.c?"#22C55E":"#A1A1AA",padding:mob?"4px 8px":"6px 14px",borderRadius:6,fontWeight:x.c?700:400}}>{x.t}</span>)}
                 </div>
                 <EfBar label="Substack" value={12000} max={22000} color="#22C55E" suffix="/mo"/>
                 <EfBar label="YouTube AdSense" value={5000} max={22000} color="#EF4444" suffix="/mo"/>
                 <EfBar label="Sponsors" value={5000} max={22000} color="#818CF8" suffix="/mo"/>
                 <div style={{marginTop:14,padding:"12px 16px",background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.1)",borderRadius:8,textAlign:"center"}}>
                   <span style={{fontSize:10,color:"#71717A"}}>Total proyectado: </span>
-                  <span style={{fontSize:20,fontWeight:800,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>$22,000/mo</span>
+                  <span style={{fontSize:mob?16:20,fontWeight:800,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>$22,000/mo</span>
                   <span style={{fontSize:10,color:"#52525B",marginLeft:8}}>($264K ARR)</span>
                 </div>
               </div>
@@ -338,7 +339,7 @@ export default function GrowthDashboard(){
               {[{n:1,title:"Captura Agresiva de Emails",color:"#22C55E",desc:"Meta: 500+ emails nuevos por mes. CTAs específicos en cada pieza de contenido. Cada short, cada podcast, cada post debe tener un CTA claro hacia Substack. IG Boosts direccionan tráfico a landing pages optimizadas en español.",tags:["Meta: 500+/mes","CTA en todo contenido","IG Boost → Landing","Spotify → Newsletter CTA"]},
                 {n:2,title:"Optimizar Conversión a Paid",color:"#F59E0B",desc:"Al llegar a 8-10K free subs, implementar welcome sequences automatizados en español. Segmentación por fuente de adquisición. A/B testing de copy y pricing.",tags:["Trigger: 8-10K free subs","Welcome sequences ES","A/B testing pricing","Segmentación por fuente"]},
                 {n:3,title:"Lanzar Producto Mid-Tier $50-200/mes",color:"#818CF8",desc:"Comunidad premium con acceso directo, análisis exclusivos, calls grupales. 300 miembros a $99/mes = $30K MRR. Requiere masa crítica de audiencia comprometida.",tags:["$50-200/mes","300 × $99 = $30K MRR","Calls grupales","Análisis exclusivos"]}
-              ].map(phase=>(<div key={phase.n} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${phase.color}15`,borderRadius:10,padding:"18px 20px",marginBottom:12,position:"relative",overflow:"hidden"}}>
+              ].map(phase=>(<div key={phase.n} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${phase.color}15`,borderRadius:10,padding:mob?"14px":"18px 20px",marginBottom:12,position:"relative",overflow:"hidden"}}>
                 <div style={{position:"absolute",top:0,left:0,width:3,height:"100%",background:phase.color}}/>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8,paddingLeft:8}}>
                   <div style={{width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,background:`${phase.color}15`,color:phase.color}}>{phase.n}</div>
@@ -354,7 +355,7 @@ export default function GrowthDashboard(){
                   <div style={{width:28,height:28,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,background:"rgba(129,140,248,0.1)",color:"#818CF8"}}>$</div>
                   <div><div style={{fontSize:13,fontWeight:600,color:"#E4E4E7"}}>Path Complementario: Sponsors</div><div style={{fontSize:9,color:"#52525B"}}>No reemplaza Email First, lo complementa</div></div>
                 </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+                <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:mob?8:10}}>
                   <EfMetric label="Nov-Dic 2025" value="$3.2K" sub="Se cayó" accent="#EF4444"/>
                   <EfMetric label="CPM Range" value="$50-150" accent="#818CF8"/>
                   <EfMetric label="Potencial" value="$2-4K/mo" accent="#22C55E"/>
@@ -365,14 +366,14 @@ export default function GrowthDashboard(){
 
             {/* ── COMPARATIVO ── */}
             {efSection==="comparison"&&(<div>
-              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px 24px",marginBottom:16}}>
-                <div style={{fontSize:9,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>⚖️ Email Acquisition vs Optimizar Conversión</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+              <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:mob?"14px":"20px 24px",marginBottom:16}}>
+                <div style={{fontSize:9,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>⚖️ Email vs Optimizar Conversión</div>
+                <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:mob?12:14}}>
 
                   {/* Email Column */}
-                  <div style={{background:"rgba(34,197,94,0.03)",border:"1px solid rgba(34,197,94,0.1)",borderRadius:10,padding:"20px"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
-                      <span style={{fontSize:20}}>📧</span>
+                  <div style={{background:"rgba(34,197,94,0.03)",border:"1px solid rgba(34,197,94,0.1)",borderRadius:10,padding:mob?"14px":"20px"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12,flexWrap:"wrap"}}>
+                      <span style={{fontSize:18}}>📧</span>
                       <div><div style={{fontSize:12,fontWeight:700,color:"#22C55E"}}>Email Acquisition</div></div>
                       <span style={{background:"rgba(34,197,94,0.1)",color:"#22C55E",padding:"1px 6px",borderRadius:3,fontSize:8,fontWeight:700}}>RECOMENDADO</span>
                     </div>
@@ -384,9 +385,9 @@ export default function GrowthDashboard(){
                   </div>
 
                   {/* Conversion Column */}
-                  <div style={{background:"rgba(239,68,68,0.03)",border:"1px solid rgba(239,68,68,0.1)",borderRadius:10,padding:"20px"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
-                      <span style={{fontSize:20}}>🔧</span>
+                  <div style={{background:"rgba(239,68,68,0.03)",border:"1px solid rgba(239,68,68,0.1)",borderRadius:10,padding:mob?"14px":"20px"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12,flexWrap:"wrap"}}>
+                      <span style={{fontSize:18}}>🔧</span>
                       <div><div style={{fontSize:12,fontWeight:700,color:"#EF4444"}}>Optimizar Conversión</div></div>
                       <span style={{background:"rgba(239,68,68,0.1)",color:"#EF4444",padding:"1px 6px",borderRadius:3,fontSize:8,fontWeight:700}}>DEPRIORITIZADO</span>
                     </div>
@@ -400,11 +401,11 @@ export default function GrowthDashboard(){
               </div>
 
               {/* Impact Multiplier */}
-              <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.12)",borderRadius:12,padding:"20px 24px",textAlign:"center"}}>
+              <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.12)",borderRadius:12,padding:mob?"14px":"20px 24px",textAlign:"center"}}>
                 <div style={{fontSize:9,color:"#D4A843",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Multiplicador de Impacto</div>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:20,flexWrap:"wrap"}}>
-                  <div><div style={{fontSize:38,fontWeight:800,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>8.6×</div><div style={{fontSize:9,color:"#52525B"}}>más impacto con email acquisition</div></div>
-                  <div style={{width:1,height:50,background:"rgba(255,255,255,0.06)"}}/>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:mob?12:20,flexWrap:"wrap"}}>
+                  <div><div style={{fontSize:mob?30:38,fontWeight:800,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>8.6×</div><div style={{fontSize:9,color:"#52525B"}}>más impacto con email acquisition</div></div>
+                  {!mob&&<div style={{width:1,height:50,background:"rgba(255,255,255,0.06)"}}/>}
                   <div style={{textAlign:"left",fontSize:10,color:"#71717A",lineHeight:1.8}}>
                     Email: <span style={{color:"#22C55E",fontWeight:600}}>+$12,000/mo</span> a 15K subs<br/>
                     Conversión: <span style={{color:"#EF4444",fontWeight:600}}>+$1,400/mo</span> (10→15%)<br/>
