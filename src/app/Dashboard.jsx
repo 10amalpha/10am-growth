@@ -543,12 +543,13 @@ export default function GrowthDashboard(){
           {/* Monthly Breakdown */}
           <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px",marginBottom:16}}>
             <div style={{fontSize:10,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:16}}>Monthly: Shorts Views vs New Substack Subs</div>
+            <div style={{width:"100%",minWidth:0}}>
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={[
-                {month:"Dic 25",subs:300,ig:24049,tt:10218,yt:15468,x:13201,clips:15},
-                {month:"Ene 26",subs:500,ig:469751,tt:254477,yt:45258,x:89754,clips:35},
-                {month:"Feb 26",subs:300,ig:96498,tt:59020,yt:22333,x:48606,clips:26},
-                {month:"Mar 26*",subs:810,ig:0,tt:0,yt:0,x:0,clips:0},
+                {month:"Dic 25",subs:300,ig:24049,tt:10218,clips:15},
+                {month:"Ene 26",subs:500,ig:469751,tt:254477,clips:35},
+                {month:"Feb 26",subs:300,ig:96498,tt:59020,clips:26},
+                {month:"Mar 26*",subs:810,ig:0,tt:0,clips:0},
               ]} margin={{top:5,right:50,bottom:5,left:5}}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)"/>
                 <XAxis dataKey="month" tick={{fontSize:10,fill:"#3F3F46"}} tickLine={false} axisLine={{stroke:"#1A1A2E"}}/>
@@ -560,6 +561,7 @@ export default function GrowthDashboard(){
                 <Line yAxisId="views" type="monotone" dataKey="tt" stroke="#00F2EA" strokeWidth={2} dot={{r:3,fill:"#00F2EA"}} name="TT Views"/>
               </ComposedChart>
             </ResponsiveContainer>
+            </div>
             <div style={{display:"flex",gap:16,marginTop:8,padding:"0 8px"}}>
               {[{c:"#FF6719",l:"New Subs"},{c:"#E1306C",l:"IG Views"},{c:"#00F2EA",l:"TT Views"}].map((lg,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:2,background:lg.c}}/><span style={{fontSize:10,color:"#52525B"}}>{lg.l}</span></div>))}
             </div>
