@@ -64,11 +64,13 @@ export default function GrowthDashboard(){
   const liveFollowerOverrides=useMemo(()=>{
     const o={};
     if(liveStats?.youtube?.subscribers)o.youtube=liveStats.youtube.subscribers;
+    if(liveStats?.instagram?.followers)o.instagram=liveStats.instagram.followers;
     return o;
   },[liveStats]);
   const enhancedFollowers=useMemo(()=>{
     const base={...latestFollowers};
     if(liveFollowerOverrides.youtube)base.youtube=liveFollowerOverrides.youtube;
+    if(liveFollowerOverrides.instagram)base.instagram=liveFollowerOverrides.instagram;
     return base;
   },[latestFollowers,liveFollowerOverrides]);
   const enhancedTotal=CH_META.reduce((s,c)=>s+(Number(enhancedFollowers[c.dbCol])||0),0);
