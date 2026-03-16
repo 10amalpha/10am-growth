@@ -31,25 +31,23 @@ export default function GrowthDashboard(){
   const loadData=useCallback(async()=>{setLoading(true);try{const{data,error}=await supabase.from("growth_snapshots").select("*").order("month",{ascending:true});if(!error&&data)setSnapshots(data)}catch(e){console.error("Supabase fetch error:",e)}finally{setLoading(false)}},[]);
   useEffect(()=>{loadData()},[loadData]);
 
-  // Fetch live channel stats — YouTube Data API directly (key public in shorts repo), IG via shorts dashboard API
+  // Fetch live channel stats — single API route for YT subscribers + IG followers
   useEffect(()=>{
-    const stats={youtube:null,instagram:null};
-    const YT_KEY="AIzaSyANRsjsV-WdoLxM9yEz-yIgBFBdoUYPXCw";
-    const YT_CH="UC1yKEFqN6Tzz9DTK7fwS3LQ";
-    // YouTube channel subscribers — direct API call
-    fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${YT_CH}&key=${YT_KEY}`)
+    fetch("/api/channel-stats")
       .then(r=>r.json()).then(d=>{
-        if(d.items?.[0]?.statistics){
-          const s=d.items[0].statistics;
-          stats.youtube={subscribers:parseInt(s.subscriberCount||"0"),totalViews:parseInt(s.viewCount||"0")};
-        }
-        setLiveStats(prev=>({...prev,...stats}));
-      }).catch(()=>{});
-    // IG follower count via shorts dashboard API (CORS enabled)
-    fetch("https://10ampro-shorts-analytics.vercel.app/api/fetch-ig")
-      .then(r=>r.json()).then(d=>{
-        if(d.count>0){stats.instagram={reelCount:d.count};setLiveStats(prev=>({...prev,...stats}));}
-      }).catch(()=>{});
+        if(d&&(d.youtube||d.instagram))setLiveStats(d);
+      }).catch(()=>{
+        // Fallback: call YT API directly if local route fails (e.g. first deploy)
+        const YT_KEY="AIzaSyANRsjsV-WdoLxM9yEz-yIgBFBdoUYPXCw";
+        const YT_CH="UC1yKEFqN6Tzz9DTK7fwS3LQ";
+        fetch(`https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${YT_CH}&key=${YT_KEY}`)
+          .then(r=>r.json()).then(d=>{
+            if(d.items?.[0]?.statistics){
+              const s=d.items[0].statistics;
+              setLiveStats({youtube:{subscribers:parseInt(s.subscriberCount||"0"),totalViews:parseInt(s.viewCount||"0")},instagram:null});
+            }
+          }).catch(()=>{});
+      });
   },[]);
 
   const revenueData=useMemo(()=>snapshots.filter(s=>Number(s.rev_total)>0).map(s=>({month:fmtMonth(s.month),youtube:Number(s.rev_youtube)||0,gumroad_substack:Number(s.rev_gumroad_substack)||0,sponsors:Number(s.rev_sponsors)||0,spotify:Number(s.rev_spotify)||0,events:Number(s.rev_events)||0,total:Number(s.rev_total)||0,expenses:Number(s.expenses)||0})),[snapshots]);
@@ -487,7 +485,7 @@ export default function GrowthDashboard(){
 
         {/* 📈 FOLLOWERS */}
         {view==="followers"&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
-          <div style={{fontSize:10,color:"#3F3F46",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>Latest: {fmtMonth(latestFollowers.month)} — {enhancedChannels}/8 Captured {liveStats?.youtube&&<span style={{color:"#22C55E",fontSize:8,background:"rgba(34,197,94,0.1)",padding:"2px 6px",borderRadius:3,marginLeft:8}}>● YT LIVE</span>}</div>
+          <div style={{fontSize:10,color:"#3F3F46",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>Latest: {fmtMonth(latestFollowers.month)} — {enhancedChannels}/8 Captured {liveStats&&(liveStats.youtube||liveStats.instagram)&&<span style={{color:"#22C55E",fontSize:8,background:"rgba(34,197,94,0.1)",padding:"2px 6px",borderRadius:3,marginLeft:8}}>● LIVE {liveStats.youtube?"YT":""}{liveStats.youtube&&liveStats.instagram?"+":""}{liveStats.instagram?"IG":""}</span>}</div>
           <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:10}}>{CH_META.map(ch=>{const val=Number(enhancedFollowers[ch.dbCol])||0;const isLive=!!liveFollowerOverrides[ch.key];const pv=prevFollowers?Number(prevFollowers[ch.dbCol])||0:0;const d=prevFollowers?val-pv:0;return(<div key={ch.key} style={{background:val>0?"rgba(255,255,255,0.02)":"rgba(255,255,255,0.01)",border:val>0?`1px solid ${ch.color}20`:"1px solid rgba(255,255,255,0.03)",borderRadius:8,padding:"14px 16px",position:"relative",overflow:"hidden"}}>{val>0&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${ch.color}60,transparent)`}}/>}<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:16}}>{ch.key==="linkedin"?<span style={{fontWeight:800,color:ch.color,fontSize:13}}>in</span>:ch.icon}</span><span style={{fontSize:11,color:"#A1A1AA",fontWeight:500}}>{ch.name}</span>{isLive?<span style={{fontSize:7,marginLeft:"auto",fontWeight:700,letterSpacing:"0.08em",padding:"1px 5px",borderRadius:3,color:"#22C55E",background:"rgba(34,197,94,0.12)"}}>● LIVE</span>:<span style={{fontSize:7,marginLeft:"auto",fontWeight:700,letterSpacing:"0.08em",padding:"1px 5px",borderRadius:3,color:val>0?"#22C55E":"#F59E0B",background:val>0?"rgba(34,197,94,0.08)":"rgba(245,158,11,0.08)"}}>{val>0?"✓":"—"}</span>}</div><div style={{fontSize:24,fontWeight:700,color:val>0?ch.color:"#27272A",fontFamily:"'Space Grotesk'"}}>{val>0?fmtK(val):"—"}</div>{d!==0&&<div style={{fontSize:10,color:d>0?"#22C55E":"#EF4444",marginTop:4}}>{d>0?"+":""}{fmtK(d)} ({pct(val,pv)}%)</div>}</div>)})}</div>
         </div>)}
 
