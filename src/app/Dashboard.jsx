@@ -554,7 +554,7 @@ export default function GrowthDashboard(){
                 <XAxis dataKey="month" tick={{fontSize:10,fill:"#3F3F46"}} tickLine={false} axisLine={{stroke:"#1A1A2E"}}/>
                 <YAxis yAxisId="subs" tick={{fontSize:10,fill:"#FF6719"}} tickLine={false} axisLine={false} orientation="left"/>
                 <YAxis yAxisId="views" tick={{fontSize:9,fill:"#3F3F46"}} tickLine={false} axisLine={false} orientation="right" tickFormatter={v=>v>=1000?(v/1000).toFixed(0)+"K":""+v}/>
-                <Tooltip content={<TT/>}/>
+                <Tooltip content={({active,payload,label})=>{if(!active||!payload?.length)return null;return(<div style={{background:"rgba(8,10,15,0.96)",border:"1px solid rgba(34,197,94,0.25)",borderRadius:8,padding:"10px 14px",fontSize:11,fontFamily:"'JetBrains Mono',monospace"}}><p style={{color:"#22C55E",marginBottom:6,fontWeight:600,fontSize:12}}>{label}</p>{payload.map((p,i)=>(<p key={i} style={{color:p.color||"#A1A1AA",margin:"2px 0"}}>{p.name}: <span style={{fontWeight:700}}>{p.dataKey==="subs"?p.value.toLocaleString()+" subs":p.value>=1000?(p.value/1000).toFixed(1)+"K views":""+p.value}</span></p>))}</div>)}}/>
                 <Bar yAxisId="subs" dataKey="subs" fill="#FF6719" name="New Subs" radius={[4,4,0,0]}/>
                 <Line yAxisId="views" type="monotone" dataKey="ig" stroke="#E1306C" strokeWidth={2} dot={{r:3,fill:"#E1306C"}} name="IG Views"/>
                 <Line yAxisId="views" type="monotone" dataKey="tt" stroke="#00F2EA" strokeWidth={2} dot={{r:3,fill:"#00F2EA"}} name="TT Views"/>
