@@ -658,6 +658,51 @@ export default function GrowthDashboard(){
             </div>
           </div>
 
+          {/* Episode Conversion Impact */}
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px",marginBottom:16}}>
+            <div style={{fontSize:10,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4}}>Episode Conversion Impact</div>
+            <div style={{fontSize:10,color:"#52525B",marginBottom:16}}>New subs in 3-day window after episode premiere (from Substack sources CSV)</div>
+            <div style={{overflowX:"auto"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                <thead><tr>
+                  {["Ep","Title","3-Day Subs","Revenue","Pattern"].map((h,i)=>(<th key={i} style={{textAlign:i>1?"right":"left",padding:"8px 10px",color:"#3F3F46",fontSize:9,textTransform:"uppercase",letterSpacing:"0.08em",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>{h}</th>))}
+                </tr></thead>
+                <tbody>
+                  {[
+                    {ep:"E195",title:"$STKE CTO: Validators, SOL",subs:94,rev:"$1,440",pattern:"Crypto/Solana = highest spike. D+1 had 58 subs alone.",color:"#22C55E",top:true},
+                    {ep:"E189",title:"Colombia + Venezuela",subs:74,rev:"$2,320",pattern:"Geopolítica LATAM. D+1 to D+3 growing (34→27→37).",color:"#22C55E",top:true},
+                    {ep:"E191",title:"Wenia sponsor ep",subs:64,rev:"$1,680",pattern:"Sponsor ep does NOT hurt conversion. Still converts.",color:"#D4A843"},
+                    {ep:"E190",title:"Forecast 2026",subs:54,rev:"$880",pattern:"Predictions = new audience magnet.",color:"#D4A843"},
+                    {ep:"E196",title:"Colombia vs Argentina",subs:51,rev:"$2,736",pattern:"Highest revenue. Country rivalry = engagement + paid.",color:"#22C55E",top:true},
+                    {ep:"E193",title:"(Feb 5 episode)",subs:42,rev:"$2,160",pattern:"Strong revenue despite avg subs.",color:"#A1A1AA"},
+                    {ep:"E194",title:"Un meteorito: Intel",subs:32,rev:"$960",pattern:"Tech/semis — average conversion.",color:"#A1A1AA"},
+                    {ep:"E198",title:"2028 sin trabajo",subs:31,rev:"$960",pattern:"AI + employment — good engagement.",color:"#A1A1AA"},
+                    {ep:"E197",title:"Estado grande + IA",subs:27,rev:"$480",pattern:"Politics + AI — lower engagement.",color:"#52525B"},
+                    {ep:"E199",title:"Internet del futuro",subs:26,rev:"$1,360",pattern:"Infra/tech — avg subs but good rev.",color:"#A1A1AA"},
+                    {ep:"E192",title:"(Jan 29 episode)",subs:25,rev:"$1,760",pattern:"Below avg subs but solid revenue.",color:"#A1A1AA"},
+                  ].map((e,i)=>(<tr key={i} style={{background:i%2===0?"rgba(255,255,255,0.015)":"transparent"}}>
+                    <td style={{padding:"8px 10px",color:e.top?"#22C55E":"#A1A1AA",fontWeight:700,fontFamily:"'Space Grotesk'",whiteSpace:"nowrap"}}>{e.ep}</td>
+                    <td style={{padding:"8px 10px",color:"#E4E4E7",fontSize:11,maxWidth:mob?120:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</td>
+                    <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:e.subs>=50?"#22C55E":e.subs>=30?"#D4A843":"#A1A1AA",fontFamily:"'Space Grotesk'",fontSize:14}}>{e.subs}</td>
+                    <td style={{padding:"8px 10px",textAlign:"right",color:parseFloat(e.rev.replace(/[$,]/g,""))>=2000?"#22C55E":"#71717A",fontSize:11}}>{e.rev}</td>
+                    <td style={{padding:"8px 10px",color:"#52525B",fontSize:10,maxWidth:mob?100:300,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.pattern}</td>
+                  </tr>))}
+                </tbody>
+              </table>
+            </div>
+            {/* Patterns summary */}
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10,marginTop:16}}>
+              {[
+                {label:"Crypto/Solana",insight:"Highest sub spike (94). Brings new audience from DeFi community.",color:"#22C55E",icon:"₿"},
+                {label:"Geopolítica LATAM",insight:"Highest revenue ($2.7K). Country-specific topics drive paid conversions.",color:"#D4A843",icon:"🌎"},
+                {label:"Sponsor episodes",insight:"No cannibalization. E191 (Wenia) still got 64 subs + $1.7K rev.",color:"#818CF8",icon:"🤝"},
+              ].map((p,i)=>(<div key={i} style={{background:`${p.color}08`,border:`1px solid ${p.color}20`,borderRadius:8,padding:"12px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}><span style={{fontSize:14}}>{p.icon}</span><span style={{fontSize:11,color:p.color,fontWeight:600}}>{p.label}</span></div>
+                <div style={{fontSize:10,color:"#71717A",lineHeight:1.5}}>{p.insight}</div>
+              </div>))}
+            </div>
+          </div>
+
           {/* Emerging Signals */}
           <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.1)",borderRadius:12,padding:"20px"}}>
             <div style={{fontSize:12,color:"#D4A843",fontWeight:600,marginBottom:12}}>Señales emergentes</div>
