@@ -104,7 +104,7 @@ export default function GrowthDashboard(){
   const monthsToTarget=avgGrowth>0?Math.ceil(monthlyGap/avgGrowth):Infinity;
 
   const iS={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"8px 10px",color:"#E4E4E7",fontSize:13,fontFamily:"'JetBrains Mono',monospace",width:"100%",outline:"none"};
-  const TABS=[{key:"tracker",label:"🏁 $500K"},{key:"strategy",label:"🎯 Strategy"},{key:"emailfirst",label:"📧 Estrategia"},{key:"shortsroi",label:"📊 Shorts→Email"},{key:"pnl",label:"💵 P&L"},{key:"followers",label:"📈 Followers"},{key:"velocity",label:"🚀 Velocity"},{key:"revenue",label:"💰 Revenue"},{key:"profit",label:"📊 Profit"},{key:"model",label:"🔮 Model"},{key:"admin",label:"⚙️ Admin"}];
+  const TABS=[{key:"tracker",label:"🏁 $500K"},{key:"strategy",label:"🎯 Strategy"},{key:"emailfirst",label:"📧 Estrategia"},{key:"conversion",label:"🔄 Conversión"},{key:"pnl",label:"💵 P&L"},{key:"followers",label:"📈 Followers"},{key:"velocity",label:"🚀 Velocity"},{key:"revenue",label:"💰 Revenue"},{key:"profit",label:"📊 Profit"},{key:"model",label:"🔮 Model"},{key:"admin",label:"⚙️ Admin"}];
   const[efSection,setEfSection]=useState("overview");
   const mob=useIsMobile();
 
@@ -529,99 +529,147 @@ export default function GrowthDashboard(){
         </div>)}
 
         {/* 📊 SHORTS → EMAIL */}
-        {view==="shortsroi"&&(<div>
-          {/* KPI Cards */}
+                {/* 🔄 CONVERSIÓN — All Channels */}
+        {view==="conversion"&&(<div>
+          {/* Top-Level KPIs */}
           <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:10,marginBottom:16}}>
             {[
-              {label:"Total Shorts Views",value:"1.15M",sub:"76 clips · Dec 25–Feb 26",color:"#E1306C"},
-              {label:"New Substack Subs",value:"+1,610",sub:"Same period (2,700→4,310)",color:"#FF6719"},
-              {label:"View→Sub Rate",value:"0.14%",sub:"~1 sub per 714 views",color:"#EF4444"},
-              {label:"Cost per Email",value:"$0",sub:"100% organic",color:"#22C55E"},
+              {label:"Total Subs (All Time)",value:"4,310",sub:"From Substack sources CSV",color:"#FF6719"},
+              {label:"Total Visitors Tracked",value:"118K+",sub:"All sources combined",color:"#22C55E"},
+              {label:"Best Converter",value:"YouTube",sub:"13.7% visitor→sub rate",color:"#FF0000"},
+              {label:"Revenue from Subs",value:"$36.9K",sub:"All-time from sources data",color:"#D4A843"},
             ].map((k,i)=>(<div key={i} style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:"14px 16px"}}><div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>{k.label}</div><div style={{fontSize:24,fontWeight:700,color:k.color,fontFamily:"'Space Grotesk'"}}>{k.value}</div><div style={{fontSize:10,color:"#3F3F46",marginTop:4}}>{k.sub}</div></div>))}
           </div>
 
-          {/* Monthly Breakdown */}
+          {/* Conversion Rate by Channel — the money chart */}
           <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px",marginBottom:16}}>
-            <div style={{fontSize:10,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:16}}>Monthly: Shorts Views vs New Substack Subs</div>
+            <div style={{fontSize:10,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:16}}>Conversion Rate by Source (Visitor → Subscriber)</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {[
+                {source:"YouTube",subs:126,visitors:917,rate:13.7,color:"#FF0000",rev:"$1,680"},
+                {source:"TikTok",subs:13,visitors:104,rate:12.5,color:"#00F2EA",rev:"$0"},
+                {source:"Instagram",subs:62,visitors:752,rate:8.2,color:"#E1306C",rev:"$0"},
+                {source:"Google (SEO)",subs:221,visitors:2764,rate:8.0,color:"#4285F4",rev:"$6,888"},
+                {source:"PodcastAI",subs:93,visitors:1402,rate:6.6,color:"#818CF8",rev:"$480"},
+                {source:"Substack Ecosystem",subs:559,visitors:30114,rate:1.9,color:"#FF6719",rev:"$8,728"},
+                {source:"X / Twitter",subs:140,visitors:3113,rate:4.5,color:"#A1A1AA",rev:"$2,640"},
+                {source:"LinkedIn",subs:27,visitors:908,rate:3.0,color:"#0A66C2",rev:"$0"},
+                {source:"Direct",subs:608,visitors:47178,rate:1.3,color:"#71717A",rev:"$6,642"},
+                {source:"Direct to App",subs:158,visitors:25463,rate:0.6,color:"#52525B",rev:"$1,440"},
+              ].map((ch,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 12px",background:i%2===0?"rgba(255,255,255,0.015)":"transparent",borderRadius:6}}>
+                <div style={{width:mob?80:120,fontSize:11,color:ch.color,fontWeight:600,flexShrink:0}}>{ch.source}</div>
+                <div style={{flex:1,height:20,background:"rgba(255,255,255,0.04)",borderRadius:4,overflow:"hidden",position:"relative"}}>
+                  <div style={{height:"100%",borderRadius:4,background:ch.color,width:`${Math.min(ch.rate/14*100,100)}%`,opacity:0.6,transition:"width 0.5s"}}/>
+                  <div style={{position:"absolute",top:2,left:8,fontSize:10,fontWeight:700,color:"#E4E4E7"}}>{ch.rate}%</div>
+                </div>
+                <div style={{width:50,textAlign:"right",fontSize:11,color:"#A1A1AA",fontWeight:600}}>{ch.subs}</div>
+                <div style={{width:mob?0:70,textAlign:"right",fontSize:10,color:"#3F3F46",display:mob?"none":"block"}}>{ch.rev}</div>
+              </div>))}
+            </div>
+            <div style={{display:"flex",gap:16,marginTop:12,fontSize:10,color:"#52525B",justifyContent:"flex-end"}}>
+              <span>Bar = conversion rate</span><span>Number = total subs</span>{!mob&&<span>Right = revenue attributed</span>}
+            </div>
+          </div>
+
+          {/* Substack Recommendations — free growth engine */}
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px",marginBottom:16}}>
+            <div style={{fontSize:10,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4}}>Substack Recommendations Network</div>
+            <div style={{fontSize:10,color:"#52525B",marginBottom:16}}>Other Substacks recommending 10AMPRO — free subscriber acquisition</div>
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(3,1fr)",gap:10}}>
+              {[
+                {name:"ARIAS FINANCIAL ACADEMY",subs:178,rev:"$1,360",color:"#FF6719",badge:"#1 referrer"},
+                {name:"Macrowise Newsletter",subs:69,rev:"$400",color:"#D4A843",badge:"finance niche"},
+                {name:"Hermanos Bilbao",subs:35,rev:"$0",color:"#22C55E",badge:"NEW — 35 subs in 2 days"},
+                {name:"La Estrategia Emergente",subs:10,rev:"$0",color:"#818CF8",badge:"steady"},
+                {name:"Investment Edge",subs:9,rev:"$0",color:"#A1A1AA",badge:"finance"},
+                {name:"Nicolás Fernández",subs:3,rev:"$0",color:"#3F3F46",badge:"co-host"},
+              ].map((r,i)=>(<div key={i} style={{background:"rgba(255,255,255,0.015)",border:`1px solid ${r.color}20`,borderRadius:8,padding:"12px 14px"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{fontSize:11,color:r.color,fontWeight:600}}>{r.name}</span><span style={{fontSize:8,color:r.color,background:`${r.color}15`,padding:"1px 6px",borderRadius:3,fontWeight:600}}>{r.badge}</span></div><div style={{fontSize:18,fontWeight:700,color:"#E4E4E7",fontFamily:"'Space Grotesk'"}}>{r.subs} subs</div>{r.rev!=="$0"&&<div style={{fontSize:10,color:"#22C55E",marginTop:2}}>→ {r.rev} revenue</div>}</div>))}
+            </div>
+          </div>
+
+          {/* Substack Notes Performance */}
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px",marginBottom:16}}>
+            <div style={{fontSize:10,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4}}>Substack Notes — Top Performing</div>
+            <div style={{fontSize:10,color:"#52525B",marginBottom:16}}>Notes that drove subscriber acquisition</div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {[
+                {note:"El DNA de 10ampro",author:"Hernán",subs:17,rev:"$400"},
+                {note:"Tarifas, Tensiones y Tesoros",author:"Hernán",subs:17,rev:"$0"},
+                {note:"La tesis del 10x de 10ampro",author:"Hernán",subs:15,rev:"$0"},
+                {note:"Lo que miramos en el WhatsApp 10amalpha",author:"Hernán",subs:12,rev:"$0"},
+                {note:"El origen de las opciones",author:"Hernán",subs:11,rev:"$0"},
+                {note:"El ecosistema 10am está detonando...",author:"Guillermo",subs:11,rev:"$400"},
+                {note:"Obligatoriamente se tiene q leer esto",author:"Darío",subs:7,rev:"$0"},
+              ].map((n,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,0.015)":"transparent",borderRadius:4}}>
+                <div style={{width:20,textAlign:"center",fontSize:11,color:"#3F3F46",fontWeight:600}}>{i+1}</div>
+                <div style={{flex:1,fontSize:11,color:"#A1A1AA"}}>{n.note}</div>
+                <div style={{fontSize:10,color:"#52525B"}}>{n.author}</div>
+                <div style={{fontSize:12,fontWeight:700,color:"#FF6719",width:40,textAlign:"right"}}>{n.subs}</div>
+              </div>))}
+            </div>
+          </div>
+
+          {/* Monthly Trends Chart */}
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px",marginBottom:16}}>
+            <div style={{fontSize:10,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:16}}>Monthly: New Subs + Shorts Views + Google SEO</div>
             <div style={{width:"100%",overflowX:"auto"}}>
               <ComposedChart width={mob?360:780} height={280} data={[
-                {month:"Dic 25",subs:300,ig:24049,tt:10218,clips:15},
-                {month:"Ene 26",subs:500,ig:469751,tt:254477,clips:35},
-                {month:"Feb 26",subs:300,ig:96498,tt:59020,clips:26},
-                {month:"Mar 26*",subs:810,ig:0,tt:0,clips:0},
+                {m:"Abr 25",subs:862,google:0,shorts:0},
+                {m:"May 25",subs:435,google:12,shorts:0},
+                {m:"Jun 25",subs:203,google:8,shorts:0},
+                {m:"Jul 25",subs:190,google:11,shorts:0},
+                {m:"Ago 25",subs:268,google:13,shorts:0},
+                {m:"Sep 25",subs:173,google:6,shorts:0},
+                {m:"Oct 25",subs:234,google:16,shorts:63000},
+                {m:"Nov 25",subs:172,google:5,shorts:0},
+                {m:"Dic 25",subs:203,google:14,shorts:62936},
+                {m:"Ene 26",subs:612,google:51,shorts:859240},
+                {m:"Feb 26",subs:473,google:70,shorts:226457},
+                {m:"Mar 26*",subs:208,google:15,shorts:0},
               ]} margin={{top:5,right:50,bottom:5,left:5}}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)"/>
-                <XAxis dataKey="month" tick={{fontSize:10,fill:"#3F3F46"}} tickLine={false} axisLine={{stroke:"#1A1A2E"}}/>
+                <XAxis dataKey="m" tick={{fontSize:9,fill:"#3F3F46"}} tickLine={false} axisLine={{stroke:"#1A1A2E"}}/>
                 <YAxis yAxisId="subs" tick={{fontSize:10,fill:"#FF6719"}} tickLine={false} axisLine={false} orientation="left"/>
                 <YAxis yAxisId="views" tick={{fontSize:9,fill:"#3F3F46"}} tickLine={false} axisLine={false} orientation="right" tickFormatter={v=>v>=1000?(v/1000).toFixed(0)+"K":""+v}/>
-                <Tooltip content={({active,payload,label})=>{if(!active||!payload?.length)return null;return(<div style={{background:"rgba(8,10,15,0.96)",border:"1px solid rgba(34,197,94,0.25)",borderRadius:8,padding:"10px 14px",fontSize:11,fontFamily:"'JetBrains Mono',monospace"}}><p style={{color:"#22C55E",marginBottom:6,fontWeight:600,fontSize:12}}>{label}</p>{payload.map((p,i)=>(<p key={i} style={{color:p.color||"#A1A1AA",margin:"2px 0"}}>{p.name}: <span style={{fontWeight:700}}>{p.dataKey==="subs"?p.value.toLocaleString()+" subs":p.value>=1000?(p.value/1000).toFixed(1)+"K views":""+p.value}</span></p>))}</div>)}}/>
+                <Tooltip content={({active,payload,label})=>{if(!active||!payload?.length)return null;return(<div style={{background:"rgba(8,10,15,0.96)",border:"1px solid rgba(34,197,94,0.25)",borderRadius:8,padding:"10px 14px",fontSize:11,fontFamily:"'JetBrains Mono',monospace"}}><p style={{color:"#22C55E",marginBottom:6,fontWeight:600,fontSize:12}}>{label}</p>{payload.map((p,i)=>(<p key={i} style={{color:p.color||"#A1A1AA",margin:"2px 0"}}>{p.name}: <span style={{fontWeight:700}}>{p.dataKey==="subs"?p.value.toLocaleString()+" subs":p.dataKey==="google"?p.value+" from SEO":p.value>=1000?(p.value/1000).toFixed(0)+"K views":""+p.value}</span></p>))}</div>)}}/>
                 <Bar yAxisId="subs" dataKey="subs" fill="#FF6719" name="New Subs" radius={[4,4,0,0]}/>
-                <Line yAxisId="views" type="monotone" dataKey="ig" stroke="#E1306C" strokeWidth={2} dot={{r:3,fill:"#E1306C"}} name="IG Views"/>
-                <Line yAxisId="views" type="monotone" dataKey="tt" stroke="#00F2EA" strokeWidth={2} dot={{r:3,fill:"#00F2EA"}} name="TT Views"/>
+                <Line yAxisId="subs" type="monotone" dataKey="google" stroke="#4285F4" strokeWidth={2} dot={{r:3,fill:"#4285F4"}} name="Google SEO Subs"/>
+                <Line yAxisId="views" type="monotone" dataKey="shorts" stroke="#E1306C" strokeWidth={2} dot={{r:3,fill:"#E1306C"}} name="Shorts Views"/>
               </ComposedChart>
             </div>
             <div style={{display:"flex",gap:16,marginTop:8,padding:"0 8px"}}>
-              {[{c:"#FF6719",l:"New Subs"},{c:"#E1306C",l:"IG Views"},{c:"#00F2EA",l:"TT Views"}].map((lg,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:2,background:lg.c}}/><span style={{fontSize:10,color:"#52525B"}}>{lg.l}</span></div>))}
+              {[{c:"#FF6719",l:"New Subs (total)"},{c:"#4285F4",l:"Google SEO subs"},{c:"#E1306C",l:"Shorts Views"}].map((lg,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:8,height:8,borderRadius:2,background:lg.c}}/><span style={{fontSize:10,color:"#52525B"}}>{lg.l}</span></div>))}
             </div>
           </div>
 
-          {/* Platform Breakdown */}
-          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(4,1fr)",gap:10,marginBottom:16}}>
-            {[
-              {platform:"Instagram",views:"590K",shares:"5,953",clips:68,color:"#E1306C",pct:"51%"},
-              {platform:"TikTok",views:"324K",shares:"—",clips:72,color:"#00F2EA",pct:"28%"},
-              {platform:"X / Twitter",views:"152K",shares:"—",clips:70,color:"#A1A1AA",pct:"13%"},
-              {platform:"YouTube",views:"83K",shares:"—",clips:76,color:"#FF0000",pct:"7%"},
-            ].map((p,i)=>(<div key={i} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${p.color}20`,borderRadius:8,padding:"14px 16px",position:"relative",overflow:"hidden"}}>
-              <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${p.color}60,transparent)`}}/>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><span style={{fontSize:11,color:p.color,fontWeight:600}}>{p.platform}</span><span style={{fontSize:9,color:"#3F3F46"}}>{p.pct}</span></div>
-              <div style={{fontSize:20,fontWeight:700,color:"#E4E4E7",fontFamily:"'Space Grotesk'"}}>{p.views}</div>
-              <div style={{fontSize:10,color:"#52525B",marginTop:4}}>{p.clips} clips{p.shares!=="—"?" · "+p.shares+" shares":""}</div>
-            </div>))}
-          </div>
-
-          {/* Analysis Cards */}
-          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12,marginBottom:16}}>
-            <div style={{background:"rgba(239,68,68,0.03)",border:"1px solid rgba(239,68,68,0.12)",borderRadius:12,padding:"20px"}}>
-              <div style={{fontSize:12,color:"#EF4444",fontWeight:600,marginBottom:10}}>El problema</div>
-              <div style={{fontSize:12,color:"#A1A1AA",lineHeight:1.7}}>
-                1.15M views de shorts generaron ~0.14% conversión a email. <span style={{color:"#E4E4E7",fontWeight:600}}>Enero tuvo 859K views y solo +500 subs. Febrero 226K views y +300 subs.</span> No hay correlación directa views→subs. El contenido genera awareness pero no captura el email.
-              </div>
+          {/* Insights Cards */}
+          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:12,marginBottom:16}}>
+            <div style={{background:"rgba(66,133,244,0.03)",border:"1px solid rgba(66,133,244,0.12)",borderRadius:12,padding:"16px"}}>
+              <div style={{fontSize:11,color:"#4285F4",fontWeight:600,marginBottom:8}}>Google SEO → Silently winning</div>
+              <div style={{fontSize:11,color:"#A1A1AA",lineHeight:1.6}}>221 subs, 8% conv, <span style={{color:"#22C55E",fontWeight:600}}>$6,888 revenue</span>. Went from 0→51 subs/mo in Jan, 70 in Feb. Highest revenue per channel after Direct. SEO is compounding.</div>
             </div>
-            <div style={{background:"rgba(34,197,94,0.03)",border:"1px solid rgba(34,197,94,0.12)",borderRadius:12,padding:"20px"}}>
-              <div style={{fontSize:12,color:"#22C55E",fontWeight:600,marginBottom:10}}>Lo que sí funciona</div>
-              <div style={{fontSize:12,color:"#A1A1AA",lineHeight:1.7}}>
-                Substack creció de 2,700→4,310 <span style={{color:"#E4E4E7",fontWeight:600}}>(+60%)</span> en 3 meses. Marzo lleva +810 en medio mes — el mejor ritmo histórico. <span style={{color:"#E4E4E7",fontWeight:600}}>El motor real es podcast + Substack deep dives + daily chat.</span> Los shorts son top-of-funnel pero sin puente CTA.
-              </div>
+            <div style={{background:"rgba(255,0,0,0.03)",border:"1px solid rgba(255,0,0,0.12)",borderRadius:12,padding:"16px"}}>
+              <div style={{fontSize:11,color:"#FF0000",fontWeight:600,marginBottom:8}}>YouTube → Highest converter</div>
+              <div style={{fontSize:11,color:"#A1A1AA",lineHeight:1.6}}>13.7% conversion rate. Only 917 visitors but 126 subs and <span style={{color:"#22C55E",fontWeight:600}}>$1,680 revenue</span>. Every YouTube click is worth 10x an IG click. Optimize descriptions + pinned comment.</div>
+            </div>
+            <div style={{background:"rgba(225,48,108,0.03)",border:"1px solid rgba(225,48,108,0.12)",borderRadius:12,padding:"16px"}}>
+              <div style={{fontSize:11,color:"#E1306C",fontWeight:600,marginBottom:8}}>Shorts → Volume problem</div>
+              <div style={{fontSize:11,color:"#A1A1AA",lineHeight:1.6}}>1.15M views, 0.14% conv. IG converts at 8.2% <em>when people click</em> — but only 752 visitors from 590K views. The CTA bridge is missing. TikTok same: 12.5% conv but only 104 visitors.</div>
             </div>
           </div>
 
-          {/* IG Shares Funnel */}
-          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px",marginBottom:16}}>
-            <div style={{fontSize:10,color:"#3F3F46",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:16}}>IG Share → Email Funnel Estimate</div>
-            <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-              {[
-                {label:"IG Shares",value:"5,953",color:"#E1306C",w:mob?"100%":"24%"},
-                {label:"→ Profile Visits (10%)",value:"~595",color:"#E1306C",w:mob?"100%":"24%"},
-                {label:"→ Bio Click (15%)",value:"~89",color:"#FF6719",w:mob?"100%":"24%"},
-                {label:"→ Subscribe (33%)",value:"~30 subs",color:"#22C55E",w:mob?"100%":"24%"},
-              ].map((s,i)=>(<div key={i} style={{flex:mob?"1 1 100%":`0 0 ${s.w}`,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:9,color:"#52525B",marginBottom:4}}>{s.label}</div><div style={{fontSize:18,fontWeight:700,color:s.color,fontFamily:"'Space Grotesk'"}}>{s.value}</div></div>))}
-            </div>
-            <div style={{fontSize:10,color:"#52525B",marginTop:12,textAlign:"center"}}>~30 subs atribuibles a IG shares. Los otros ~1,580 vinieron del podcast, YouTube, y descubrimiento orgánico en Substack.</div>
-          </div>
-
-          {/* Action Items */}
+          {/* Emerging Signals */}
           <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.1)",borderRadius:12,padding:"20px"}}>
-            <div style={{fontSize:12,color:"#D4A843",fontWeight:600,marginBottom:12}}>Próximos pasos para convertir views en emails</div>
+            <div style={{fontSize:12,color:"#D4A843",fontWeight:600,marginBottom:12}}>Señales emergentes</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12}}>
               {[
-                {n:"1",title:"CTA verbal en cada short",desc:"'El análisis completo → 10am.pro' al final de cada clip"},
-                {n:"2",title:"Caption con link",desc:"Cada caption de IG/TT debe incluir: análisis en 10am.pro (link en bio)"},
-                {n:"3",title:"Bio link directo",desc:"IG bio → landing de captura de email, no linktree genérico"},
-                {n:"4",title:"UTM tracking",desc:"Medir conversión real por plataforma con parámetros UTM en cada link"},
-              ].map((a,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"10px 12px",background:"rgba(255,255,255,0.015)",borderRadius:8}}>
-                <div style={{width:24,height:24,borderRadius:6,background:"rgba(212,168,67,0.1)",color:"#D4A843",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>{a.n}</div>
-                <div><div style={{fontSize:12,color:"#E4E4E7",fontWeight:600,marginBottom:2}}>{a.title}</div><div style={{fontSize:10,color:"#52525B"}}>{a.desc}</div></div>
+                {signal:"Hermanos Bilbao",detail:"35 subs en 2 días (Mar 16-17) por recomendación. Nuevo aliado — contactar para cross-promo sostenida.",color:"#22C55E"},
+                {signal:"Luma.com tráfico",detail:"26 visitors desde la página del Ep200 event. El evento ya genera discovery antes de celebrarse.",color:"#818CF8"},
+                {signal:"ARIAS FINANCIAL ACADEMY",detail:"178 subs totales por recs + $1,360 revenue. El referral #1 — considerar alianza formal.",color:"#FF6719"},
+                {signal:"Google trending up",detail:"0→8→12→51→70→15* subs/mo from SEO. Feb fue el mejor mes. El contenido indexado está rindiendo.",color:"#4285F4"},
+              ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"10px 12px",background:"rgba(255,255,255,0.015)",borderRadius:8}}>
+                <div style={{width:4,borderRadius:2,background:s.color,flexShrink:0}}/>
+                <div><div style={{fontSize:12,color:"#E4E4E7",fontWeight:600,marginBottom:2}}>{s.signal}</div><div style={{fontSize:10,color:"#71717A"}}>{s.detail}</div></div>
               </div>))}
             </div>
           </div>
