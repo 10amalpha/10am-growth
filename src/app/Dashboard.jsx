@@ -703,18 +703,50 @@ export default function GrowthDashboard(){
             </div>
           </div>
 
-          {/* Emerging Signals */}
+          {/* Emerging Signals — Expanded */}
           <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.1)",borderRadius:12,padding:"20px"}}>
-            <div style={{fontSize:12,color:"#D4A843",fontWeight:600,marginBottom:12}}>Señales emergentes</div>
-            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:12}}>
+            <div style={{fontSize:12,color:"#D4A843",fontWeight:600,marginBottom:4}}>Señales emergentes & accionables</div>
+            <div style={{fontSize:10,color:"#52525B",marginBottom:16}}>Insights del CSV de Substack sources — datos reales, no estimados</div>
+
+            {/* Tier 1: High Impact */}
+            <div style={{fontSize:9,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Alto impacto — actuar esta semana</div>
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10,marginBottom:20}}>
               {[
-                {signal:"Hermanos Bilbao",detail:"35 subs en 2 días (Mar 16-17) por recomendación. Nuevo aliado — contactar para cross-promo sostenida.",color:"#22C55E"},
-                {signal:"Luma.com tráfico",detail:"26 visitors desde la página del Ep200 event. El evento ya genera discovery antes de celebrarse.",color:"#818CF8"},
-                {signal:"ARIAS FINANCIAL ACADEMY",detail:"178 subs totales por recs + $1,360 revenue. El referral #1 — considerar alianza formal.",color:"#FF6719"},
-                {signal:"Google trending up",detail:"0→8→12→51→70→15* subs/mo from SEO. Feb fue el mejor mes. El contenido indexado está rindiendo.",color:"#4285F4"},
-              ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"10px 12px",background:"rgba(255,255,255,0.015)",borderRadius:8}}>
+                {signal:"Hermanos Bilbao: 35 subs en 2 días",detail:"Recomendación de Substack (Mar 16-17). Nuevo aliado con conversión explosiva. Contactar para cross-promo sostenida — podrían ser los próximos ARIAS.",color:"#22C55E",action:"DM/email esta semana"},
+                {signal:"Google SEO: 0→51→70 subs/mo",detail:"Trending up agresivamente. Genera $6,888 en revenue (8% conv). El contenido indexado de 10am.pro está rindiendo. Invertir en SEO de los deep dives — cada artículo es un activo permanente.",color:"#4285F4",action:"Optimizar títulos/meta de posts"},
+                {signal:"ARIAS FINANCIAL ACADEMY: 178 subs, $1.4K rev",detail:"El referral #1 por lejos. 178 subs gratis. Considerar alianza formal: cross-recs mutuas, guest episode, co-branded content. Cada sub de ARIAS ya viene pre-calificado en finanzas.",color:"#FF6719",action:"Proponer alianza formal"},
+                {signal:"Viernes = día de más revenue",detail:"Los viernes generan $9,136 en 2026 — 2x más que cualquier otro día. Coincide con premieres de podcast (Fri/Sat). Los subs del viernes PAGAN. Nunca mover el premiere del viernes.",color:"#D4A843",action:"Proteger el slot del viernes"},
+              ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"12px 14px",background:"rgba(255,255,255,0.02)",border:`1px solid ${s.color}15`,borderRadius:8}}>
                 <div style={{width:4,borderRadius:2,background:s.color,flexShrink:0}}/>
-                <div><div style={{fontSize:12,color:"#E4E4E7",fontWeight:600,marginBottom:2}}>{s.signal}</div><div style={{fontSize:10,color:"#71717A"}}>{s.detail}</div></div>
+                <div style={{flex:1}}><div style={{fontSize:12,color:"#E4E4E7",fontWeight:600,marginBottom:3}}>{s.signal}</div><div style={{fontSize:10,color:"#71717A",lineHeight:1.5,marginBottom:6}}>{s.detail}</div><div style={{fontSize:9,color:s.color,fontWeight:600,background:`${s.color}10`,display:"inline-block",padding:"2px 8px",borderRadius:3}}>→ {s.action}</div></div>
+              </div>))}
+            </div>
+
+            {/* Tier 2: Growth Levers */}
+            <div style={{fontSize:9,color:"#818CF8",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Palancas de crecimiento — optimizar este mes</div>
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10,marginBottom:20}}>
+              {[
+                {signal:"Notas de Hernán = 238 subs de 42 notas",detail:"Promedio 5.7 subs/nota, gratis. Las mejores: 'El DNA de 10ampro' (17), 'Tarifas y Tesoros' (17), 'Tesis del 10x' (15). Temas meta + tesis macro convierten más. Publicar 2-3 notas/semana mínimo.",color:"#FF6719",action:"Cadencia de 3 notas/semana"},
+                {signal:"Guillermo Valencia: 8.5 subs/nota (2 notas, 17 subs)",detail:"La conversión por nota más alta de todos los autores. Su endorsement tiene peso en la comunidad. Pedirle que postee 1 nota/mes mencionando 10AMPRO o compartiendo un deep dive.",color:"#818CF8",action:"Pedirle 1 nota/mes"},
+                {signal:"PodcastAI: 93 subs, 6.6% conv",detail:"10ampro.onpodcastai.com genera 1,402 visitors con 6.6% conversión. Herramienta subestimada. Asegurar que cada episodio nuevo aparezca ahí con CTA a 10am.pro.",color:"#A855F7",action:"Verificar cada ep en PodcastAI"},
+                {signal:"Substack Onboarding: 444 subs gratis",detail:"Gente que se suscribe durante el signup flow de Substack. Esto es tráfico orgánico de la plataforma — crece cuando 10am.pro aparece en recs, leaderboards, y search dentro de Substack. Optimizar description y tags.",color:"#FF6719",action:"Optimizar perfil/tags Substack"},
+              ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"12px 14px",background:"rgba(255,255,255,0.015)",borderRadius:8}}>
+                <div style={{width:4,borderRadius:2,background:s.color,flexShrink:0}}/>
+                <div style={{flex:1}}><div style={{fontSize:12,color:"#E4E4E7",fontWeight:600,marginBottom:3}}>{s.signal}</div><div style={{fontSize:10,color:"#71717A",lineHeight:1.5,marginBottom:6}}>{s.detail}</div><div style={{fontSize:9,color:s.color,fontWeight:600,background:`${s.color}10`,display:"inline-block",padding:"2px 8px",borderRadius:3}}>→ {s.action}</div></div>
+              </div>))}
+            </div>
+
+            {/* Tier 3: Watch & Learn */}
+            <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Monitorear — señales tempranas</div>
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
+              {[
+                {signal:"Luma.com → tráfico pre-evento",detail:"26 visitors desde la página del Ep200 event en Luma. El evento ya genera discovery sin haberse celebrado. Post-evento: analizar cuántos registrantes convierten a paid.",color:"#818CF8"},
+                {signal:"Shares creciendo: 14 subs en Feb (0 en Dic)",detail:"La gente está compartiendo 10am.pro con otros. Feb tuvo 14 share-subs vs 0 en Dic. También 11 gifts en Feb. El word-of-mouth se está activando.",color:"#22C55E"},
+                {signal:"ChatGPT refiere tráfico",detail:"Feb 20: primer sub desde ChatGPT. AI referrals son nuevos (Perplexity también manda tráfico). El contenido de 10am.pro está siendo citado por LLMs — señal temprana de SEO en AI.",color:"#00F2EA"},
+                {signal:"Tus tools Vercel refieren tráfico",detail:"info-diet (57 vis), 10ampro-hub (39 vis), btc-pension (19 vis), earningswatch (9 vis). Ninguno convierte a subs aún — agregar CTAs a 10am.pro en cada tool.",color:"#A1A1AA"},
+              ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"10px 12px",background:"rgba(255,255,255,0.01)",borderRadius:6}}>
+                <div style={{width:3,borderRadius:2,background:s.color,flexShrink:0}}/>
+                <div><div style={{fontSize:11,color:"#A1A1AA",fontWeight:600,marginBottom:2}}>{s.signal}</div><div style={{fontSize:10,color:"#52525B",lineHeight:1.5}}>{s.detail}</div></div>
               </div>))}
             </div>
           </div>
