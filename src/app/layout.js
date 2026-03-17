@@ -3,7 +3,7 @@ import './globals.css';
 export const metadata = {
   title: '10AMPRO Growth Intelligence',
   description: 'Track follower growth, revenue streams, and monetization efficiency across all 10AMPRO channels.',
-  icons: { icon: 'https://10ampro-hub.vercel.app/logo.jpg' },
+  icons: { icon: '/favicon.svg' },
 };
 
 export default function RootLayout({ children }) {
