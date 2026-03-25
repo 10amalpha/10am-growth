@@ -104,8 +104,10 @@ export default function GrowthDashboard(){
   const monthsToTarget=avgGrowth>0?Math.ceil(monthlyGap/avgGrowth):Infinity;
 
   const iS={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"8px 10px",color:"#E4E4E7",fontSize:13,fontFamily:"'JetBrains Mono',monospace",width:"100%",outline:"none"};
-  const TABS=[{key:"tracker",label:"🏁 $500K"},{key:"strategy",label:"🎯 Strategy"},{key:"emailfirst",label:"📧 Estrategia"},{key:"conversion",label:"🔄 Conversión"},{key:"pnl",label:"💵 P&L"},{key:"followers",label:"📈 Followers"},{key:"velocity",label:"🚀 Velocity"},{key:"revenue",label:"💰 Revenue"},{key:"profit",label:"📊 Profit"},{key:"model",label:"🔮 Model"},{key:"admin",label:"⚙️ Admin"}];
+  const TABS=[{key:"tracker",label:"🏁 $500K"},{key:"strategy",label:"🎯 Strategy"},{key:"emailfirst",label:"📧 Estrategia"},{key:"conversion",label:"🔄 Conversión"},{key:"pnl",label:"💵 P&L"},{key:"followers",label:"📈 Followers"},{key:"velocity",label:"🚀 Velocity"},{key:"revenue",label:"💰 Revenue"},{key:"profit",label:"📊 Profit"},{key:"model",label:"🔮 Model"},{key:"episodes",label:"🎬 Episodes"},{key:"admin",label:"⚙️ Admin"}];
   const[efSection,setEfSection]=useState("overview");
+  const[epSort,setEpSort]=useState("net");
+  const[epView,setEpView]=useState("matrix");
   const mob=useIsMobile();
 
   if(loading)return(<div style={{minHeight:"100vh",background:"#08090D",display:"flex",alignItems:"center",justifyContent:"center",color:"#22C55E",fontFamily:"'JetBrains Mono',monospace"}}>Loading...</div>);
@@ -806,6 +808,157 @@ export default function GrowthDashboard(){
             </div>
           </div>
         </div>)}
+
+
+        {/* 🎬 EPISODES INTELLIGENCE */}
+        {view==="episodes"&&(()=>{
+          const EP_DATA=[
+            {ep:"E199",title:"Internet del futuro: Double Zero",date:"Mar 12",cat:"tech",catLabel:"Tech Específico",free:36,org:34,paid:22,churn:5,net:17,rev:480},
+            {ep:"E192",title:"Duolingo: IA redefiniendo aprendizaje",date:"Feb 5",cat:"tech",catLabel:"Tech Específico",free:46,org:42,paid:13,churn:0,net:13,rev:960},
+            {ep:"E191",title:"Las 5 señales del cambio de era (Wenia)",date:"Jan 29",cat:"sponsor",catLabel:"Sponsor",free:98,org:79,paid:12,churn:0,net:12,rev:3200},
+            {ep:"E196",title:"Colombia vs Argentina: modelo económico",date:"Feb 26",cat:"latam",catLabel:"LATAM",free:30,org:30,paid:9,churn:0,net:9,rev:0},
+            {ep:"E194",title:"Un meteorito llamado IA",date:"Feb 12",cat:"ai",catLabel:"AI / Disruption",free:30,org:30,paid:8,churn:0,net:8,rev:2320},
+            {ep:"E193",title:"Mercados + IA Autónoma: OpenClaw",date:"Feb 6",cat:"ai",catLabel:"AI / Disruption",free:52,org:48,paid:7,churn:0,net:7,rev:800},
+            {ep:"E197",title:"Estado grande + IA y energía",date:"Feb 28",cat:"politica",catLabel:"Política + AI",free:58,org:55,paid:6,churn:1,net:5,rev:0},
+            {ep:"E200",title:"Irán, petróleo, dólar y drones",date:"Mar 19",cat:"geopolitica",catLabel:"Geopolítica",free:58,org:26,paid:5,churn:2,net:3,rev:1360},
+            {ep:"E198",title:"2028: el año sin trabajo",date:"Mar 5",cat:"ai",catLabel:"AI / Disruption",free:29,org:22,paid:5,churn:2,net:3,rev:480},
+            {ep:"E190",title:"Forecast 2026",date:"Jan 22",cat:"macro",catLabel:"Macro",free:66,org:44,paid:2,churn:0,net:2,rev:480},
+            {ep:"E189",title:"Colombia + Venezuela: oportunidad",date:"Jan 12",cat:"latam",catLabel:"LATAM",free:37,org:34,paid:3,churn:1,net:2,rev:1360},
+            {ep:"E186",title:"171% de retorno en 2025",date:"Dec 25",cat:"portfolio",catLabel:"Portfolio",free:30,org:28,paid:2,churn:0,net:2,rev:480},
+            {ep:"E188",title:"El mundo avanza, Colombia retrocede",date:"Jan 8",cat:"latam",catLabel:"LATAM",free:16,org:15,paid:1,churn:0,net:1,rev:400},
+            {ep:"E187",title:"Juniper Drinks: de la U a $5M",date:"Jan 1",cat:"emprendimiento",catLabel:"Emprend.",free:29,org:26,paid:1,churn:0,net:1,rev:480},
+            {ep:"E195",title:"$STKE CTO: Validators, SOL",date:"Feb 19",cat:"crypto",catLabel:"Crypto",free:27,org:24,paid:1,churn:2,net:-1,rev:480},
+            {ep:"E185",title:"Colombianos no somos productivos",date:"Dec 18",cat:"politica",catLabel:"Política",free:25,org:24,paid:0,churn:0,net:0,rev:0},
+            {ep:"E184",title:"Michael Saylor contra el mundo",date:"Dec 11",cat:"crypto",catLabel:"Crypto",free:10,org:9,paid:0,churn:0,net:0,rev:0},
+            {ep:"E183",title:"Saylor, BTC y Burbuja de IA",date:"Dec 4",cat:"crypto",catLabel:"Crypto",free:19,org:19,paid:0,churn:0,net:0,rev:0},
+            {ep:"E182",title:"Todos los caminos conducen a Roma",date:"Nov 27",cat:"historia",catLabel:"Historia",free:12,org:12,paid:0,churn:0,net:0,rev:0},
+          ];
+          const CAT_COLORS={tech:"#3b82f6",latam:"#22c55e",sponsor:"#d4a843",politica:"#a78bfa",geopolitica:"#f97316",ai:"#06b6d4",macro:"#facc15",crypto:"#00f2ea",portfolio:"#e879f9",emprendimiento:"#fb923c",historia:"#71717a"};
+          const CAT_SUMMARY=[
+            {cat:"tech",label:"Tech Específico",eps:2,avgPaid:15.0,verdict:"CONVERSION MACHINE",emoji:"💰",desc:"Double Zero, Duolingo — tesis concreta sobre empresa/infra."},
+            {cat:"sponsor",label:"Sponsor",eps:1,avgPaid:12.0,verdict:"NO CANIBALIZAN",emoji:"🤝",desc:"E191 Wenia: +12 paid + $3.2K rev."},
+            {cat:"ai",label:"AI / Disruption",eps:3,avgPaid:6.7,verdict:"SOLID",emoji:"🤖",desc:"IA meteorito, OpenClaw, 2028. Convierte con tesis concreta."},
+            {cat:"latam",label:"LATAM Geopolítica",eps:3,avgPaid:4.0,verdict:"MIXED",emoji:"🌎",desc:"Col vs Arg (+9) fuerte. Otros LATAM más débiles."},
+            {cat:"politica",label:"Política",eps:2,avgPaid:2.5,verdict:"DÉBIL",emoji:"🏛️",desc:"Solo convierte con ángulo tech/energía."},
+            {cat:"macro",label:"Macro / Predictions",eps:1,avgPaid:2.0,verdict:"NO CONVIERTE",emoji:"📊",desc:"Forecast: 66 free pero +2 paid. Gratis."},
+            {cat:"crypto",label:"Crypto",eps:3,avgPaid:0.3,verdict:"CERO",emoji:"₿",desc:"3 eps, avg 0.3 paid. Viene, mira, se va."},
+          ];
+          const sorted=[...EP_DATA].sort((a,b)=>epSort==="net"?b.net-a.net:epSort==="free"?b.free-a.free:b.rev-a.rev);
+          const grade=(n)=>n>=10?{l:"CONVIERTE",c:"#22c55e",bg:"rgba(34,197,94,0.1)"}:n>=5?{l:"BUENO",c:"#3b82f6",bg:"rgba(59,130,246,0.1)"}:n>=2?{l:"OK",c:"#facc15",bg:"rgba(250,204,21,0.1)"}:n>=0?{l:"DÉBIL",c:"#71717a",bg:"rgba(113,113,122,0.1)"}:{l:"NEG",c:"#ef4444",bg:"rgba(239,68,68,0.1)"};
+          const totalPaid=EP_DATA.reduce((s,e)=>s+e.net,0);
+          return(<div>
+            {/* KPIs */}
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr 1fr":"repeat(4,1fr)",gap:10,marginBottom:16}}>
+              {[{label:"Net Paid (19 eps)",value:`+${totalPaid}`,color:"#22C55E"},{label:"Best Episode",value:"E199",sub:"Double Zero · +17",color:"#3b82f6"},{label:"Best Category",value:"Tech",sub:"Avg +15 paid/ep",color:"#3b82f6"},{label:"Worst Category",value:"Crypto",sub:"3 eps · +0.3 avg",color:"#EF4444"}].map((k,i)=>(
+                <div key={i} style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:"12px 14px"}}>
+                  <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}}>{k.label}</div>
+                  <div style={{fontSize:22,fontWeight:700,color:k.color,fontFamily:"'Space Grotesk'"}}>{k.value}</div>
+                  {k.sub&&<div style={{fontSize:10,color:"#71717A",marginTop:2}}>{k.sub}</div>}
+                </div>))}
+            </div>
+
+            {/* Sub-nav */}
+            <div style={{display:"flex",gap:4,marginBottom:16,background:"rgba(255,255,255,0.02)",borderRadius:8,padding:3,border:"1px solid rgba(255,255,255,0.05)",width:"fit-content"}}>
+              {[["matrix","Categorías"],["episodes","Episodios"],["rules","Framework"]].map(([k,l])=>(
+                <button key={k} onClick={()=>setEpView(k)} style={{padding:"6px 14px",borderRadius:6,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,background:epView===k?"#22C55E":"transparent",color:epView===k?"#000":"#71717A"}}>{l}</button>
+              ))}
+            </div>
+
+            {/* CATEGORÍAS */}
+            {epView==="matrix"&&<div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {CAT_SUMMARY.map((c,i)=>{const color=CAT_COLORS[c.cat]||"#71717a";const isTop=c.avgPaid>=6;return(
+                <div key={i} style={{background:isTop?`${color}08`:"rgba(255,255,255,0.015)",border:`1px solid ${isTop?color+"25":"rgba(255,255,255,0.04)"}`,borderRadius:10,padding:"14px 18px",display:"flex",gap:14,alignItems:"flex-start"}}>
+                  <div style={{width:4,borderRadius:2,background:color,alignSelf:"stretch",flexShrink:0}}/>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,flexWrap:"wrap",gap:6}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontSize:14}}>{c.emoji}</span>
+                        <span style={{fontSize:13,fontWeight:700,color}}>{c.label}</span>
+                        <span style={{fontSize:9,color:"#52525B"}}>{c.eps} ep{c.eps>1?"s":""}</span>
+                      </div>
+                      <span style={{fontSize:8,fontWeight:700,padding:"2px 8px",borderRadius:3,color:c.avgPaid>=10?"#22c55e":c.avgPaid>=5?"#3b82f6":c.avgPaid>=2?"#facc15":"#ef4444",background:c.avgPaid>=10?"rgba(34,197,94,0.1)":c.avgPaid>=5?"rgba(59,130,246,0.1)":c.avgPaid>=2?"rgba(250,204,21,0.1)":"rgba(239,68,68,0.1)"}}>{c.verdict}</span>
+                    </div>
+                    <div style={{display:"flex",gap:16,marginBottom:6}}>
+                      <div><div style={{fontSize:8,color:"#52525B",textTransform:"uppercase"}}>Avg Paid</div><div style={{fontSize:18,fontWeight:800,color:c.avgPaid>=6?"#22c55e":c.avgPaid>=2?"#facc15":"#ef4444"}}>+{c.avgPaid}</div></div>
+                      <div style={{flex:1}}><div style={{fontSize:8,color:"#52525B",textTransform:"uppercase"}}>Bar</div><div style={{height:18,background:"rgba(255,255,255,0.04)",borderRadius:4,marginTop:4,overflow:"hidden"}}><div style={{height:"100%",borderRadius:4,background:color,width:`${Math.min(c.avgPaid/15*100,100)}%`,opacity:0.6}}/></div></div>
+                    </div>
+                    <div style={{fontSize:10,color:"#A1A1AA",lineHeight:1.5}}>{c.desc}</div>
+                  </div>
+                </div>
+              );})}
+            </div>}
+
+            {/* EPISODIOS TABLE */}
+            {epView==="episodes"&&<div>
+              <div style={{display:"flex",justifyContent:"flex-end",gap:4,marginBottom:10}}>
+                {[["net","Paid ↓"],["free","Free ↓"],["rev","Rev ↓"]].map(([k,l])=>(
+                  <button key={k} onClick={()=>setEpSort(k)} style={{padding:"3px 10px",borderRadius:4,border:"none",cursor:"pointer",fontSize:10,fontWeight:600,background:epSort===k?"rgba(34,197,94,0.1)":"rgba(255,255,255,0.03)",color:epSort===k?"#22C55E":"#52525B"}}>{l}</button>
+                ))}
+              </div>
+              <div style={{overflowX:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                  <thead><tr>{["Ep","Título","Cat","Free","Paid","Net","Rev",""].map((h,i)=>(
+                    <th key={i} style={{textAlign:i>2?"right":"left",padding:"7px 6px",color:"#52525B",fontSize:9,textTransform:"uppercase",letterSpacing:"0.08em",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>{h}</th>
+                  ))}</tr></thead>
+                  <tbody>{sorted.map((e,i)=>{const g=grade(e.net);const color=CAT_COLORS[e.cat]||"#71717a";return(
+                    <tr key={i} style={{background:i%2===0?"rgba(255,255,255,0.015)":"transparent"}}>
+                      <td style={{padding:"7px 6px",fontWeight:700,color:g.c,fontFamily:"monospace",whiteSpace:"nowrap"}}>{e.ep}</td>
+                      <td style={{padding:"7px 6px",color:"#E4E4E7",maxWidth:mob?100:220,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</td>
+                      <td style={{padding:"7px 6px"}}><span style={{fontSize:8,color,background:`${color}15`,padding:"1px 6px",borderRadius:3,fontWeight:600,whiteSpace:"nowrap"}}>{e.catLabel}</span></td>
+                      <td style={{padding:"7px 6px",textAlign:"right",color:"#A1A1AA"}}>{e.free}</td>
+                      <td style={{padding:"7px 6px",textAlign:"right",color:"#A1A1AA",fontWeight:600}}>+{e.paid}</td>
+                      <td style={{padding:"7px 6px",textAlign:"right",fontWeight:800,fontSize:13,color:g.c}}>{e.net>=0?"+":""}{e.net}</td>
+                      <td style={{padding:"7px 6px",textAlign:"right",color:e.rev>=1000?"#D4A843":"#71717A"}}>${e.rev.toLocaleString()}</td>
+                      <td style={{padding:"7px 6px",textAlign:"right"}}><span style={{fontSize:7,fontWeight:700,padding:"2px 5px",borderRadius:3,color:g.c,background:g.bg}}>{g.l}</span></td>
+                    </tr>)})}</tbody>
+                </table>
+              </div>
+            </div>}
+
+            {/* FRAMEWORK */}
+            {epView==="rules"&&<div>
+              <div style={{background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.15)",borderRadius:12,padding:mob?16:24,marginBottom:16}}>
+                <div style={{fontSize:15,fontWeight:800,color:"#22C55E",marginBottom:8}}>La regla de los 4 episodios</div>
+                <div style={{fontSize:12,color:"#A1A1AA",lineHeight:1.8,marginBottom:14}}>De cada 4 episodios al mes, <strong style={{color:"#22C55E"}}>mínimo 2</strong> deben ser de categorías que convierten.</div>
+                <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
+                  <div style={{background:"rgba(34,197,94,0.06)",borderRadius:8,padding:14}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"#22C55E",marginBottom:6}}>✓ CONVIERTE (2+/mes)</div>
+                    <div style={{fontSize:11,color:"#A1A1AA",lineHeight:1.8}}>
+                      <strong style={{color:"#3b82f6"}}>Tech específico</strong> — empresa/infra concreta. +15 avg.<br/>
+                      <strong style={{color:"#06b6d4"}}>AI con tesis</strong> — meteorito, OpenClaw. +6.7 avg.<br/>
+                      <strong style={{color:"#D4A843"}}>Sponsors</strong> — no canibalizan. +12.
+                    </div>
+                  </div>
+                  <div style={{background:"rgba(255,255,255,0.02)",borderRadius:8,padding:14}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"#71717A",marginBottom:6}}>✗ NO CONVIERTE</div>
+                    <div style={{fontSize:11,color:"#71717A",lineHeight:1.8}}>
+                      <strong style={{color:"#facc15"}}>Macro</strong> — forecast gratis, +2 paid.<br/>
+                      <strong style={{color:"#f97316"}}>Geopolítica global</strong> — curiosidad ≠ urgencia.<br/>
+                      <strong style={{color:"#00f2ea"}}>Crypto</strong> — 3 eps, +0.3 avg.<br/>
+                      <strong style={{color:"#71717a"}}>Historia</strong> — 0 paid.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style={{background:"rgba(212,168,67,0.04)",border:"1px solid rgba(212,168,67,0.12)",borderRadius:12,padding:mob?16:24}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#D4A843",marginBottom:10}}>Template: mes ideal</div>
+                <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(4,1fr)",gap:10}}>
+                  {[{w:"S1",type:"Tech",color:"#3b82f6",ex:"Empresa / tesis inversión",exp:"+12-17"},{w:"S2",type:"AI + Tesis",color:"#06b6d4",ex:"IA aplicada a sector",exp:"+5-8"},{w:"S3",type:"Exploratorio",color:"#71717a",ex:"LATAM, macro, crypto",exp:"+1-3"},{w:"S4",type:"Tech/Sponsor",color:"#D4A843",ex:"Otra tesis + sponsor",exp:"+8-15"}].map((s,i)=>(
+                    <div key={i} style={{background:"rgba(255,255,255,0.02)",borderRadius:8,padding:12,borderTop:`3px solid ${s.color}`}}>
+                      <div style={{fontSize:8,color:"#52525B",textTransform:"uppercase",marginBottom:3}}>{s.w}</div>
+                      <div style={{fontSize:12,fontWeight:700,color:s.color,marginBottom:4}}>{s.type}</div>
+                      <div style={{fontSize:9,color:"#71717A",marginBottom:6}}>{s.ex}</div>
+                      <div style={{fontSize:11,fontWeight:700,color:"#22C55E"}}>{s.exp} paid</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{marginTop:12,padding:"10px 14px",background:"rgba(34,197,94,0.06)",borderRadius:8,fontSize:12,color:"#A1A1AA"}}>
+                  <strong style={{color:"#22C55E"}}>Proyección:</strong> ~26-43 net paid/mes. A $80/año = $2,080-$3,440 adicionales/mes solo por elegir mejor los temas.
+                </div>
+              </div>
+            </div>}
+          </div>);
+        })()}
 
         {/* ⚙️ ADMIN */}
         {view==="admin"&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
