@@ -813,8 +813,8 @@ export default function GrowthDashboard(){
         {/* 🎬 EPISODES INTELLIGENCE */}
         {view==="episodes"&&(()=>{
           const EP_DATA=[
-            {ep:"E199",title:"Internet del futuro: Double Zero",date:"Mar 12",cat:"tech",catLabel:"Tech Específico",free:36,org:34,paid:22,churn:5,net:17,rev:480},
-            {ep:"E192",title:"Duolingo: IA redefiniendo aprendizaje",date:"Feb 5",cat:"tech",catLabel:"Tech Específico",free:46,org:42,paid:13,churn:0,net:13,rev:960},
+            {ep:"E199",title:"$2Z Double Zero: Internet del futuro",date:"Mar 12",cat:"crypto_tesis",catLabel:"Crypto + Tesis",free:36,org:34,paid:22,churn:5,net:17,rev:480},
+            {ep:"E192",title:"Duolingo: IA redefiniendo aprendizaje",date:"Feb 5",cat:"tech",catLabel:"Tech + Tesis",free:46,org:42,paid:13,churn:0,net:13,rev:960},
             {ep:"E191",title:"Las 5 señales del cambio de era (Wenia)",date:"Jan 29",cat:"sponsor",catLabel:"Sponsor",free:98,org:79,paid:12,churn:0,net:12,rev:3200},
             {ep:"E196",title:"Colombia vs Argentina: modelo económico",date:"Feb 26",cat:"latam",catLabel:"LATAM",free:30,org:30,paid:9,churn:0,net:9,rev:0},
             {ep:"E194",title:"Un meteorito llamado IA",date:"Feb 12",cat:"ai",catLabel:"AI / Disruption",free:30,org:30,paid:8,churn:0,net:8,rev:2320},
@@ -833,15 +833,16 @@ export default function GrowthDashboard(){
             {ep:"E183",title:"Saylor, BTC y Burbuja de IA",date:"Dec 4",cat:"crypto",catLabel:"Crypto",free:19,org:19,paid:0,churn:0,net:0,rev:0},
             {ep:"E182",title:"Todos los caminos conducen a Roma",date:"Nov 27",cat:"historia",catLabel:"Historia",free:12,org:12,paid:0,churn:0,net:0,rev:0},
           ];
-          const CAT_COLORS={tech:"#3b82f6",latam:"#22c55e",sponsor:"#d4a843",politica:"#a78bfa",geopolitica:"#f97316",ai:"#06b6d4",macro:"#facc15",crypto:"#00f2ea",portfolio:"#e879f9",emprendimiento:"#fb923c",historia:"#71717a"};
+          const CAT_COLORS={crypto_tesis:"#8b5cf6",tech:"#3b82f6",latam:"#22c55e",sponsor:"#d4a843",politica:"#a78bfa",geopolitica:"#f97316",ai:"#06b6d4",macro:"#facc15",crypto:"#00f2ea",portfolio:"#e879f9",emprendimiento:"#fb923c",historia:"#71717a"};
           const CAT_SUMMARY=[
-            {cat:"tech",label:"Tech Específico",eps:2,avgPaid:15.0,verdict:"CONVERSION MACHINE",emoji:"💰",desc:"Double Zero, Duolingo — tesis concreta sobre empresa/infra."},
+            {cat:"crypto_tesis",label:"Crypto + Tesis Concreta",eps:1,avgPaid:17.0,verdict:"#1 CONVERTER",emoji:"💰",desc:"$2Z Double Zero: tesis específica sobre un proyecto. +17 paid. Crypto CON tesis de inversión concreta es el formato ganador."},
+            {cat:"tech",label:"Tech + Tesis",eps:1,avgPaid:13.0,verdict:"CONVERSION MACHINE",emoji:"🔬",desc:"Duolingo con Antonio Linares: análisis de empresa específica. +13 paid."},
             {cat:"sponsor",label:"Sponsor",eps:1,avgPaid:12.0,verdict:"NO CANIBALIZAN",emoji:"🤝",desc:"E191 Wenia: +12 paid + $3.2K rev."},
-            {cat:"ai",label:"AI / Disruption",eps:3,avgPaid:6.7,verdict:"SOLID",emoji:"🤖",desc:"IA meteorito, OpenClaw, 2028. Convierte con tesis concreta."},
+            {cat:"ai",label:"AI / Disruption",eps:3,avgPaid:6.7,verdict:"SOLID",emoji:"🤖",desc:"IA meteorito, OpenClaw, 2028. Convierte cuando hay tesis concreta."},
             {cat:"latam",label:"LATAM Geopolítica",eps:3,avgPaid:4.0,verdict:"MIXED",emoji:"🌎",desc:"Col vs Arg (+9) fuerte. Otros LATAM más débiles."},
             {cat:"politica",label:"Política",eps:2,avgPaid:2.5,verdict:"DÉBIL",emoji:"🏛️",desc:"Solo convierte con ángulo tech/energía."},
             {cat:"macro",label:"Macro / Predictions",eps:1,avgPaid:2.0,verdict:"NO CONVIERTE",emoji:"📊",desc:"Forecast: 66 free pero +2 paid. Gratis."},
-            {cat:"crypto",label:"Crypto",eps:3,avgPaid:0.3,verdict:"CERO",emoji:"₿",desc:"3 eps, avg 0.3 paid. Viene, mira, se va."},
+            {cat:"crypto",label:"Crypto sin Tesis",eps:3,avgPaid:0.3,verdict:"CERO",emoji:"₿",desc:"Saylor x2, Validators: narrativa broad sin tesis específica. +0.3 avg. Viene, mira, se va."},
           ];
           const sorted=[...EP_DATA].sort((a,b)=>epSort==="net"?b.net-a.net:epSort==="free"?b.free-a.free:b.rev-a.rev);
           const grade=(n)=>n>=10?{l:"CONVIERTE",c:"#22c55e",bg:"rgba(34,197,94,0.1)"}:n>=5?{l:"BUENO",c:"#3b82f6",bg:"rgba(59,130,246,0.1)"}:n>=2?{l:"OK",c:"#facc15",bg:"rgba(250,204,21,0.1)"}:n>=0?{l:"DÉBIL",c:"#71717a",bg:"rgba(113,113,122,0.1)"}:{l:"NEG",c:"#ef4444",bg:"rgba(239,68,68,0.1)"};
@@ -849,7 +850,7 @@ export default function GrowthDashboard(){
           return(<div>
             {/* KPIs */}
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr 1fr":"repeat(4,1fr)",gap:10,marginBottom:16}}>
-              {[{label:"Net Paid (19 eps)",value:`+${totalPaid}`,color:"#22C55E"},{label:"Best Episode",value:"E199",sub:"Double Zero · +17",color:"#3b82f6"},{label:"Best Category",value:"Tech",sub:"Avg +15 paid/ep",color:"#3b82f6"},{label:"Worst Category",value:"Crypto",sub:"3 eps · +0.3 avg",color:"#EF4444"}].map((k,i)=>(
+              {[{label:"Net Paid (19 eps)",value:`+${totalPaid}`,color:"#22C55E"},{label:"Best Episode",value:"E199",sub:"$2Z Double Zero · +17",color:"#8b5cf6"},{label:"Best Category",value:"Tesis Concreta",sub:"Crypto/Tech+tesis: +15 avg",color:"#8b5cf6"},{label:"Worst Category",value:"Crypto",sub:"3 eps · +0.3 avg",color:"#EF4444"}].map((k,i)=>(
                 <div key={i} style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:"12px 14px"}}>
                   <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}}>{k.label}</div>
                   <div style={{fontSize:22,fontWeight:700,color:k.color,fontFamily:"'Space Grotesk'"}}>{k.value}</div>
@@ -924,7 +925,7 @@ export default function GrowthDashboard(){
                   <div style={{background:"rgba(34,197,94,0.06)",borderRadius:8,padding:14}}>
                     <div style={{fontSize:11,fontWeight:700,color:"#22C55E",marginBottom:6}}>✓ CONVIERTE (2+/mes)</div>
                     <div style={{fontSize:11,color:"#A1A1AA",lineHeight:1.8}}>
-                      <strong style={{color:"#3b82f6"}}>Tech específico</strong> — empresa/infra concreta. +15 avg.<br/>
+                      <strong style={{color:"#8b5cf6"}}>Crypto/Tech + tesis</strong> — $2Z, Duolingo. +15 avg.<br/>
                       <strong style={{color:"#06b6d4"}}>AI con tesis</strong> — meteorito, OpenClaw. +6.7 avg.<br/>
                       <strong style={{color:"#D4A843"}}>Sponsors</strong> — no canibalizan. +12.
                     </div>
@@ -934,7 +935,7 @@ export default function GrowthDashboard(){
                     <div style={{fontSize:11,color:"#71717A",lineHeight:1.8}}>
                       <strong style={{color:"#facc15"}}>Macro</strong> — forecast gratis, +2 paid.<br/>
                       <strong style={{color:"#f97316"}}>Geopolítica global</strong> — curiosidad ≠ urgencia.<br/>
-                      <strong style={{color:"#00f2ea"}}>Crypto</strong> — 3 eps, +0.3 avg.<br/>
+                      <strong style={{color:"#00f2ea"}}>Crypto genérico</strong> — Saylor, BTC broad. +0.3 avg.<br/>
                       <strong style={{color:"#71717a"}}>Historia</strong> — 0 paid.
                     </div>
                   </div>
@@ -943,7 +944,7 @@ export default function GrowthDashboard(){
               <div style={{background:"rgba(212,168,67,0.04)",border:"1px solid rgba(212,168,67,0.12)",borderRadius:12,padding:mob?16:24}}>
                 <div style={{fontSize:13,fontWeight:700,color:"#D4A843",marginBottom:10}}>Template: mes ideal</div>
                 <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(4,1fr)",gap:10}}>
-                  {[{w:"S1",type:"Tech",color:"#3b82f6",ex:"Empresa / tesis inversión",exp:"+12-17"},{w:"S2",type:"AI + Tesis",color:"#06b6d4",ex:"IA aplicada a sector",exp:"+5-8"},{w:"S3",type:"Exploratorio",color:"#71717a",ex:"LATAM, macro, crypto",exp:"+1-3"},{w:"S4",type:"Tech/Sponsor",color:"#D4A843",ex:"Otra tesis + sponsor",exp:"+8-15"}].map((s,i)=>(
+                  {[{w:"S1",type:"Tesis Concreta",color:"#8b5cf6",ex:"$2Z, Duolingo, empresa/crypto específico",exp:"+12-17"},{w:"S2",type:"AI + Tesis",color:"#06b6d4",ex:"IA aplicada a sector",exp:"+5-8"},{w:"S3",type:"Exploratorio",color:"#71717a",ex:"LATAM, macro, crypto",exp:"+1-3"},{w:"S4",type:"Tech/Sponsor",color:"#D4A843",ex:"Otra tesis + sponsor",exp:"+8-15"}].map((s,i)=>(
                     <div key={i} style={{background:"rgba(255,255,255,0.02)",borderRadius:8,padding:12,borderTop:`3px solid ${s.color}`}}>
                       <div style={{fontSize:8,color:"#52525B",textTransform:"uppercase",marginBottom:3}}>{s.w}</div>
                       <div style={{fontSize:12,fontWeight:700,color:s.color,marginBottom:4}}>{s.type}</div>
