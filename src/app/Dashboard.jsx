@@ -534,10 +534,10 @@ export default function GrowthDashboard(){
           {/* Top-Level KPIs */}
           <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:10,marginBottom:16}}>
             {[
-              {label:"Total Subs (All Time)",value:"4,310",sub:"From Substack sources CSV",color:"#FF6719"},
-              {label:"Total Visitors Tracked",value:"118K+",sub:"All sources combined",color:"#22C55E"},
-              {label:"Best Converter",value:"YouTube",sub:"13.7% visitor→sub rate",color:"#FF0000"},
-              {label:"Revenue from Subs",value:"$36.9K",sub:"All-time from sources data",color:"#D4A843"},
+              {label:"Total Subs (All Time)",value:"4,473",sub:"From Substack sources CSV (Mar 25)",color:"#FF6719"},
+              {label:"Total Visitors Tracked",value:"51K+",sub:"All sources combined",color:"#22C55E"},
+              {label:"Best Converter",value:"YouTube",sub:"22.5% visitor→sub rate",color:"#FF0000"},
+              {label:"Revenue from Subs",value:"$37.9K",sub:"All-time from sources data",color:"#D4A843"},
             ].map((k,i)=>(<div key={i} style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:"14px 16px"}}><div style={{fontSize:9,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>{k.label}</div><div style={{fontSize:24,fontWeight:700,color:k.color,fontFamily:"'Space Grotesk'"}}>{k.value}</div><div style={{fontSize:10,color:"#71717A",marginTop:4}}>{k.sub}</div></div>))}
           </div>
 
@@ -546,20 +546,20 @@ export default function GrowthDashboard(){
             <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:16}}>Conversion Rate by Source (Visitor → Subscriber)</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {[
-                {source:"YouTube",subs:126,visitors:917,rate:13.7,color:"#FF0000",rev:"$1,680"},
-                {source:"TikTok",subs:13,visitors:104,rate:12.5,color:"#00F2EA",rev:"$0"},
-                {source:"Instagram",subs:62,visitors:752,rate:8.2,color:"#E1306C",rev:"$0"},
-                {source:"Google (SEO)",subs:221,visitors:2764,rate:8.0,color:"#4285F4",rev:"$6,888"},
-                {source:"PodcastAI",subs:93,visitors:1402,rate:6.6,color:"#818CF8",rev:"$480"},
-                {source:"Substack Ecosystem",subs:559,visitors:30114,rate:1.9,color:"#FF6719",rev:"$8,728"},
-                {source:"X / Twitter",subs:140,visitors:3113,rate:4.5,color:"#A1A1AA",rev:"$2,640"},
-                {source:"LinkedIn",subs:27,visitors:908,rate:3.0,color:"#0A66C2",rev:"$0"},
-                {source:"Direct",subs:608,visitors:47178,rate:1.3,color:"#71717A",rev:"$6,642"},
-                {source:"Direct to App",subs:158,visitors:25463,rate:0.6,color:"#71717A",rev:"$1,440"},
+                {source:"YouTube",subs:128,visitors:568,rate:22.5,color:"#FF0000",rev:"$1,680"},
+                {source:"TikTok",subs:14,visitors:81,rate:17.3,color:"#00F2EA",rev:"$0"},
+                {source:"Google (SEO)",subs:229,visitors:1551,rate:14.8,color:"#4285F4",rev:"$7,368"},
+                {source:"Bing",subs:7,visitors:51,rate:13.7,color:"#00809D",rev:"$0"},
+                {source:"PodcastAI",subs:93,visitors:736,rate:12.6,color:"#818CF8",rev:"$480"},
+                {source:"Instagram",subs:64,visitors:608,rate:10.5,color:"#E1306C",rev:"$0"},
+                {source:"X / Twitter",subs:145,visitors:2440,rate:5.9,color:"#A1A1AA",rev:"$2,640"},
+                {source:"LinkedIn",subs:28,visitors:720,rate:3.9,color:"#0A66C2",rev:"$480"},
+                {source:"Direct",subs:778,visitors:26635,rate:2.9,color:"#71717A",rev:"$8,082"},
+                {source:"Substack",subs:2022,visitors:13884,rate:14.6,color:"#FF6719",rev:"$14,968"},
               ].map((ch,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 12px",background:i%2===0?"rgba(255,255,255,0.015)":"transparent",borderRadius:6}}>
                 <div style={{width:mob?80:120,fontSize:11,color:ch.color,fontWeight:600,flexShrink:0}}>{ch.source}</div>
                 <div style={{flex:1,height:20,background:"rgba(255,255,255,0.04)",borderRadius:4,overflow:"hidden",position:"relative"}}>
-                  <div style={{height:"100%",borderRadius:4,background:ch.color,width:`${Math.min(ch.rate/14*100,100)}%`,opacity:0.6,transition:"width 0.5s"}}/>
+                  <div style={{height:"100%",borderRadius:4,background:ch.color,width:`${Math.min(ch.rate/23*100,100)}%`,opacity:0.6,transition:"width 0.5s"}}/>
                   <div style={{position:"absolute",top:2,left:8,fontSize:10,fontWeight:700,color:"#E4E4E7"}}>{ch.rate}%</div>
                 </div>
                 <div style={{width:50,textAlign:"right",fontSize:11,color:"#A1A1AA",fontWeight:600}}>{ch.subs}</div>
@@ -577,11 +577,12 @@ export default function GrowthDashboard(){
             <div style={{fontSize:10,color:"#71717A",marginBottom:16}}>Other Substacks recommending 10AMPRO — free subscriber acquisition</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(3,1fr)",gap:10}}>
               {[
-                {name:"ARIAS FINANCIAL ACADEMY",subs:178,rev:"$1,360",color:"#FF6719",badge:"#1 referrer"},
-                {name:"Macrowise Newsletter",subs:69,rev:"$400",color:"#D4A843",badge:"finance niche"},
-                {name:"Hermanos Bilbao",subs:35,rev:"$0",color:"#22C55E",badge:"NEW — 35 subs in 2 days"},
-                {name:"La Estrategia Emergente",subs:10,rev:"$0",color:"#818CF8",badge:"steady"},
+                {name:"Hermanos Bilbao",subs:356,rev:"$0",color:"#22C55E",badge:"🔥 356 subs en 9 días"},
+                {name:"ARIAS FINANCIAL ACADEMY",subs:184,rev:"$1,360",color:"#FF6719",badge:"#2 all-time"},
+                {name:"Macrowise Newsletter",subs:76,rev:"$400",color:"#D4A843",badge:"finance niche"},
+                {name:"La Estrategia Emergente",subs:22,rev:"$0",color:"#818CF8",badge:"growing"},
                 {name:"Investment Edge",subs:9,rev:"$0",color:"#A1A1AA",badge:"finance"},
+                {name:"Arca Digital",subs:4,rev:"$0",color:"#00F2EA",badge:"new Mar 26"},
                 {name:"Nicolás Fernández",subs:3,rev:"$0",color:"#71717A",badge:"co-host"},
               ].map((r,i)=>(<div key={i} style={{background:"rgba(255,255,255,0.015)",border:`1px solid ${r.color}20`,borderRadius:8,padding:"12px 14px"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{fontSize:11,color:r.color,fontWeight:600}}>{r.name}</span><span style={{fontSize:8,color:r.color,background:`${r.color}15`,padding:"1px 6px",borderRadius:3,fontWeight:600}}>{r.badge}</span></div><div style={{fontSize:18,fontWeight:700,color:"#E4E4E7",fontFamily:"'Space Grotesk'"}}>{r.subs} subs</div>{r.rev!=="$0"&&<div style={{fontSize:10,color:"#22C55E",marginTop:2}}>→ {r.rev} revenue</div>}</div>))}
             </div>
@@ -597,15 +598,69 @@ export default function GrowthDashboard(){
                 {note:"Tarifas, Tensiones y Tesoros",author:"Hernán",subs:17,rev:"$0"},
                 {note:"La tesis del 10x de 10ampro",author:"Hernán",subs:15,rev:"$0"},
                 {note:"Lo que miramos en el WhatsApp 10amalpha",author:"Hernán",subs:12,rev:"$0"},
-                {note:"El origen de las opciones",author:"Hernán",subs:11,rev:"$0"},
+                {note:"We need Jordi on our pod",author:"Hernán",subs:11,rev:"$0"},
                 {note:"El ecosistema 10am está detonando...",author:"Guillermo",subs:11,rev:"$400"},
-                {note:"Obligatoriamente se tiene q leer esto",author:"Darío",subs:7,rev:"$0"},
+                {note:"El origen de las opciones",author:"Hernán",subs:11,rev:"$0"},
+                {note:"¿Y si el riesgo real fuera no arriesgar?",author:"Hernán",subs:10,rev:"$0"},
               ].map((n,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,0.015)":"transparent",borderRadius:4}}>
                 <div style={{width:20,textAlign:"center",fontSize:11,color:"#71717A",fontWeight:600}}>{i+1}</div>
                 <div style={{flex:1,fontSize:11,color:"#A1A1AA"}}>{n.note}</div>
                 <div style={{fontSize:10,color:"#71717A"}}>{n.author}</div>
                 <div style={{fontSize:12,fontWeight:700,color:"#FF6719",width:40,textAlign:"right"}}>{n.subs}</div>
               </div>))}
+            </div>
+          </div>
+
+          {/* Monthly Email Capture */}
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px",marginBottom:16}}>
+            <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4}}>📧 Emails Capturados por Mes</div>
+            <div style={{fontSize:10,color:"#71717A",marginBottom:16}}>Suscriptores nuevos + visitantes + conversión mensual</div>
+            <div style={{overflowX:"auto"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+                <thead><tr>
+                  {["Mes","Nuevos Subs","Visitors","Conv %","Δ Subs","Trend"].map((h,i)=>(<th key={i} style={{textAlign:i>0?"right":"left",padding:"8px 10px",color:"#71717A",fontSize:9,textTransform:"uppercase",letterSpacing:"0.08em",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>{h}</th>))}
+                </tr></thead>
+                <tbody>
+                  {[
+                    {m:"Abr 2025",subs:862,vis:2480,prev:3},
+                    {m:"May 2025",subs:435,vis:2996,prev:862},
+                    {m:"Jun 2025",subs:203,vis:2524,prev:435},
+                    {m:"Jul 2025",subs:190,vis:3076,prev:203},
+                    {m:"Ago 2025",subs:266,vis:4587,prev:190},
+                    {m:"Sep 2025",subs:173,vis:4032,prev:266},
+                    {m:"Oct 2025",subs:231,vis:4164,prev:173},
+                    {m:"Nov 2025",subs:172,vis:3652,prev:231},
+                    {m:"Dic 2025",subs:203,vis:3810,prev:172},
+                    {m:"Ene 2026",subs:612,vis:7201,prev:203},
+                    {m:"Feb 2026",subs:473,vis:6622,prev:612},
+                    {m:"Mar 2026*",subs:627,vis:5829,prev:473,partial:true},
+                  ].map((r,i)=>{const conv=(r.subs/Math.max(r.vis,1)*100).toFixed(1);const delta=r.subs-r.prev;const pct=r.prev>10?((delta/r.prev)*100).toFixed(0):"-";return(<tr key={i} style={{background:i%2===0?"rgba(255,255,255,0.015)":"transparent"}}>
+                    <td style={{padding:"8px 10px",color:r.partial?"#D4A843":"#A1A1AA",fontWeight:r.partial?700:400,fontSize:11}}>{r.m}</td>
+                    <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:r.subs>=500?"#22C55E":r.subs>=200?"#D4A843":"#A1A1AA",fontFamily:"'Space Grotesk'",fontSize:14}}>{r.subs.toLocaleString()}</td>
+                    <td style={{padding:"8px 10px",textAlign:"right",color:"#71717A",fontSize:11}}>{r.vis.toLocaleString()}</td>
+                    <td style={{padding:"8px 10px",textAlign:"right",color:parseFloat(conv)>=8?"#22C55E":parseFloat(conv)>=5?"#D4A843":"#71717A",fontWeight:600,fontSize:11}}>{conv}%</td>
+                    <td style={{padding:"8px 10px",textAlign:"right",color:delta>0?"#22C55E":"#EF4444",fontSize:11}}>{delta>0?"+":""}{delta}</td>
+                    <td style={{padding:"8px 10px",textAlign:"right",fontSize:11,color:delta>0?"#22C55E":"#EF4444"}}>{pct!=="-"?(delta>0?"↑":"↓")+Math.abs(pct)+"%":"—"}</td>
+                  </tr>)})}
+                </tbody>
+              </table>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(3,1fr)",gap:10,marginTop:16}}>
+              <div style={{background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.15)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",marginBottom:4}}>Promedio Mensual (Q1 2026)</div>
+                <div style={{fontSize:20,fontWeight:700,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>{Math.round((612+473+627)/3)}/mo</div>
+                <div style={{fontSize:10,color:"#71717A",marginTop:2}}>vs 209/mo en H2 2025</div>
+              </div>
+              <div style={{background:"rgba(255,103,25,0.04)",border:"1px solid rgba(255,103,25,0.15)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",marginBottom:4}}>Mejor Mes</div>
+                <div style={{fontSize:20,fontWeight:700,color:"#FF6719",fontFamily:"'Space Grotesk'"}}>{862}</div>
+                <div style={{fontSize:10,color:"#71717A",marginTop:2}}>Abr 2025 (launch month)</div>
+              </div>
+              <div style={{background:"rgba(212,168,67,0.04)",border:"1px solid rgba(212,168,67,0.15)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",marginBottom:4}}>Mar 2026 Proyección</div>
+                <div style={{fontSize:20,fontWeight:700,color:"#D4A843",fontFamily:"'Space Grotesk'"}}>{Math.round(627/24*31)}</div>
+                <div style={{fontSize:10,color:"#71717A",marginTop:2}}>A ritmo actual (26 subs/día)</div>
+              </div>
             </div>
           </div>
 
@@ -618,14 +673,14 @@ export default function GrowthDashboard(){
                 {m:"May 25",subs:435,google:12,shorts:0},
                 {m:"Jun 25",subs:203,google:8,shorts:0},
                 {m:"Jul 25",subs:190,google:11,shorts:0},
-                {m:"Ago 25",subs:268,google:13,shorts:0},
+                {m:"Ago 25",subs:266,google:13,shorts:0},
                 {m:"Sep 25",subs:173,google:6,shorts:0},
-                {m:"Oct 25",subs:234,google:16,shorts:63000},
+                {m:"Oct 25",subs:231,google:16,shorts:63000},
                 {m:"Nov 25",subs:172,google:5,shorts:0},
                 {m:"Dic 25",subs:203,google:14,shorts:62936},
                 {m:"Ene 26",subs:612,google:51,shorts:859240},
                 {m:"Feb 26",subs:473,google:70,shorts:226457},
-                {m:"Mar 26*",subs:208,google:15,shorts:0},
+                {m:"Mar 26*",subs:627,google:23,shorts:0},
               ]} margin={{top:5,right:50,bottom:5,left:5}}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)"/>
                 <XAxis dataKey="m" tick={{fontSize:9,fill:"#71717A"}} tickLine={false} axisLine={{stroke:"#1A1A2E"}}/>
@@ -712,9 +767,9 @@ export default function GrowthDashboard(){
             <div style={{fontSize:9,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Alto impacto — actuar esta semana</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10,marginBottom:20}}>
               {[
-                {signal:"Hermanos Bilbao: 35 subs en 2 días",detail:"Recomendación de Substack (Mar 16-17). Nuevo aliado con conversión explosiva. Contactar para cross-promo sostenida — podrían ser los próximos ARIAS.",color:"#22C55E",action:"DM/email esta semana"},
-                {signal:"Google SEO: 0→51→70 subs/mo",detail:"Trending up agresivamente. Genera $6,888 en revenue (8% conv). El contenido indexado de 10am.pro está rindiendo. Invertir en SEO de los deep dives — cada artículo es un activo permanente.",color:"#4285F4",action:"Optimizar títulos/meta de posts"},
-                {signal:"ARIAS FINANCIAL ACADEMY: 178 subs, $1.4K rev",detail:"El referral #1 por lejos. 178 subs gratis. Considerar alianza formal: cross-recs mutuas, guest episode, co-branded content. Cada sub de ARIAS ya viene pre-calificado en finanzas.",color:"#FF6719",action:"Proponer alianza formal"},
+                {signal:"🔥 Hermanos Bilbao: 356 subs en 9 días",detail:"Explotó Mar 16-24. Pico de 85 subs en un solo día (Mar 17). Superó a ARIAS en menos de 2 semanas. Es ahora el #1 referrer. Contactar para mantener la recomendación activa y explorar cross-promo.",color:"#22C55E",action:"DM/email esta semana"},
+                {signal:"Marzo va en 627 subs (24 días) — récord Q1",detail:"Supera a Feb completo (473) y ya casi a Ene (612). Conversión del 10.8% — la más alta desde Abr 25. Las Substack Recs (410 de 627) están detonando el crecimiento.",color:"#FF6719",action:"Mantener momentum de recs"},
+                {signal:"Google SEO: 0→51→70→23* subs/mo",detail:"Trending up. Genera $7,368 en revenue (14.8% conv). El channel con más revenue atribuido después de Substack. El contenido indexado de 10am.pro es un activo permanente.",color:"#4285F4",action:"Optimizar títulos/meta de posts"},
                 {signal:"Viernes = día de más revenue",detail:"Los viernes generan $9,136 en 2026 — 2x más que cualquier otro día. Coincide con premieres de podcast (Fri/Sat). Los subs del viernes PAGAN. Nunca mover el premiere del viernes.",color:"#D4A843",action:"Proteger el slot del viernes"},
               ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"12px 14px",background:"rgba(255,255,255,0.02)",border:`1px solid ${s.color}15`,borderRadius:8}}>
                 <div style={{width:4,borderRadius:2,background:s.color,flexShrink:0}}/>
@@ -726,10 +781,10 @@ export default function GrowthDashboard(){
             <div style={{fontSize:9,color:"#818CF8",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Palancas de crecimiento — optimizar este mes</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10,marginBottom:20}}>
               {[
-                {signal:"Notas de Hernán = 238 subs de 42 notas",detail:"Promedio 5.7 subs/nota, gratis. Las mejores: 'El DNA de 10ampro' (17), 'Tarifas y Tesoros' (17), 'Tesis del 10x' (15). Temas meta + tesis macro convierten más. Publicar 2-3 notas/semana mínimo.",color:"#FF6719",action:"Cadencia de 3 notas/semana"},
-                {signal:"Guillermo Valencia: 8.5 subs/nota (2 notas, 17 subs)",detail:"La conversión por nota más alta de todos los autores. Su endorsement tiene peso en la comunidad. Pedirle que postee 1 nota/mes mencionando 10AMPRO o compartiendo un deep dive.",color:"#818CF8",action:"Pedirle 1 nota/mes"},
-                {signal:"PodcastAI: 93 subs, 6.6% conv",detail:"10ampro.onpodcastai.com genera 1,402 visitors con 6.6% conversión. Herramienta subestimada. Asegurar que cada episodio nuevo aparezca ahí con CTA a 10am.pro.",color:"#A855F7",action:"Verificar cada ep en PodcastAI"},
-                {signal:"Substack Onboarding: 444 subs gratis",detail:"Gente que se suscribe durante el signup flow de Substack. Esto es tráfico orgánico de la plataforma — crece cuando 10am.pro aparece en recs, leaderboards, y search dentro de Substack. Optimizar description y tags.",color:"#FF6719",action:"Optimizar perfil/tags Substack"},
+                {signal:"Notas de Hernán = 248 subs de 50 notas",detail:"Promedio 5 subs/nota, gratis. Top: 'El DNA de 10ampro' (17), 'Tarifas y Tesoros' (17), 'Tesis del 10x' (15). Temas meta + tesis macro convierten más. Publicar 2-3 notas/semana mínimo.",color:"#FF6719",action:"Cadencia de 3 notas/semana"},
+                {signal:"ARIAS FINANCIAL ACADEMY: 184 subs, $1.4K rev",detail:"Ahora #2 después de Hermanos Bilbao. 184 subs gratis pre-calificados en finanzas. Considerar alianza formal: cross-recs, guest episode, co-branded content.",color:"#FF6719",action:"Proponer alianza formal"},
+                {signal:"La Estrategia Emergente: 22 subs (de 10 a 22)",detail:"Creció más del doble. Mar 24 tuvo 8 subs en un solo día. Aliado emergente para recs sostenidas.",color:"#818CF8",action:"Monitor + DM si sigue creciendo"},
+                {signal:"Substack Onboarding: 453 subs gratis",detail:"Gente que se suscribe durante el signup flow de Substack. Crece cuando 10am.pro aparece en recs, leaderboards, y search dentro de Substack. Optimizar description y tags.",color:"#FF6719",action:"Optimizar perfil/tags Substack"},
               ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"12px 14px",background:"rgba(255,255,255,0.015)",borderRadius:8}}>
                 <div style={{width:4,borderRadius:2,background:s.color,flexShrink:0}}/>
                 <div style={{flex:1}}><div style={{fontSize:12,color:"#E4E4E7",fontWeight:600,marginBottom:3}}>{s.signal}</div><div style={{fontSize:10,color:"#71717A",lineHeight:1.5,marginBottom:6}}>{s.detail}</div><div style={{fontSize:9,color:s.color,fontWeight:600,background:`${s.color}10`,display:"inline-block",padding:"2px 8px",borderRadius:3}}>→ {s.action}</div></div>
@@ -740,10 +795,10 @@ export default function GrowthDashboard(){
             <div style={{fontSize:9,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Monitorear — señales tempranas</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
               {[
-                {signal:"Luma.com → tráfico pre-evento",detail:"26 visitors desde la página del Ep200 event en Luma. El evento ya genera discovery sin haberse celebrado. Post-evento: analizar cuántos registrantes convierten a paid.",color:"#818CF8"},
-                {signal:"Shares creciendo: 14 subs en Feb (0 en Dic)",detail:"La gente está compartiendo 10am.pro con otros. Feb tuvo 14 share-subs vs 0 en Dic. También 11 gifts en Feb. El word-of-mouth se está activando.",color:"#22C55E"},
-                {signal:"ChatGPT refiere tráfico",detail:"Feb 20: primer sub desde ChatGPT. AI referrals son nuevos (Perplexity también manda tráfico). El contenido de 10am.pro está siendo citado por LLMs — señal temprana de SEO en AI.",color:"#00F2EA"},
-                {signal:"Tus tools Vercel refieren tráfico",detail:"info-diet (57 vis), 10ampro-hub (39 vis), btc-pension (19 vis), earningswatch (9 vis). Ninguno convierte a subs aún — agregar CTAs a 10am.pro en cada tool.",color:"#A1A1AA"},
+                {signal:"Shares + Gifts: 131 + 19 subs all-time",detail:"Word-of-mouth activo. La gente comparte y regala 10am.pro. Señal fuerte de product-market fit con la audiencia actual.",color:"#22C55E"},
+                {signal:"Import: 781 subs migrados",detail:"Gran bloque de subs viene de imports (migraciones de lista). Estos necesitan engagement temprano para retención.",color:"#A1A1AA"},
+                {signal:"Bing: 7 subs, 13.7% conv",detail:"Señal temprana. Bing tiene alta conversión (similar a Google). El contenido también rankea ahí. Monitorear si crece.",color:"#00809D"},
+                {signal:"Vercel tools refieren tráfico",detail:"10ampro-hub, info-diet, btc-pension, earningswatch generan visitas. Pocos convierten — agregar CTAs a 10am.pro en cada tool.",color:"#A1A1AA"},
               ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"10px 12px",background:"rgba(255,255,255,0.01)",borderRadius:6}}>
                 <div style={{width:3,borderRadius:2,background:s.color,flexShrink:0}}/>
                 <div><div style={{fontSize:11,color:"#A1A1AA",fontWeight:600,marginBottom:2}}>{s.signal}</div><div style={{fontSize:10,color:"#71717A",lineHeight:1.5}}>{s.detail}</div></div>
