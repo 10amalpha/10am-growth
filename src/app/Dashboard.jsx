@@ -815,7 +815,7 @@ export default function GrowthDashboard(){
           const EP_DATA=[
             {ep:"E199",title:"$2Z Double Zero: Internet del futuro",date:"Mar 12",cat:"crypto_tesis",catLabel:"Crypto + Tesis",free:36,org:34,paid:22,churn:5,net:17,rev:480},
             {ep:"E192",title:"Duolingo: IA redefiniendo aprendizaje",date:"Feb 5",cat:"tech",catLabel:"Tech + Tesis",free:46,org:42,paid:13,churn:0,net:13,rev:960},
-            {ep:"E191",title:"Las 5 señales del cambio de era (Wenia)",date:"Jan 29",cat:"sponsor",catLabel:"Sponsor",free:98,org:79,paid:12,churn:0,net:12,rev:3200},
+            {ep:"E191",title:"Las 5 señales del cambio de era",date:"Jan 29",cat:"ai",catLabel:"AI / Disruption",free:98,org:79,paid:12,churn:0,net:12,rev:3200},
             {ep:"E196",title:"Colombia vs Argentina: modelo económico",date:"Feb 26",cat:"latam",catLabel:"LATAM",free:30,org:30,paid:9,churn:0,net:9,rev:0},
             {ep:"E194",title:"Un meteorito llamado IA",date:"Feb 12",cat:"ai",catLabel:"AI / Disruption",free:30,org:30,paid:8,churn:0,net:8,rev:2320},
             {ep:"E193",title:"Mercados + IA Autónoma: OpenClaw",date:"Feb 6",cat:"ai",catLabel:"AI / Disruption",free:52,org:48,paid:7,churn:0,net:7,rev:800},
@@ -835,14 +835,13 @@ export default function GrowthDashboard(){
           ];
           const CAT_COLORS={crypto_tesis:"#8b5cf6",tech:"#3b82f6",latam:"#22c55e",sponsor:"#d4a843",politica:"#a78bfa",geopolitica:"#f97316",ai:"#06b6d4",macro:"#facc15",crypto:"#00f2ea",portfolio:"#e879f9",emprendimiento:"#fb923c",historia:"#71717a"};
           const CAT_SUMMARY=[
-            {cat:"crypto_tesis",label:"Crypto + Tesis Concreta",eps:1,avgPaid:17.0,verdict:"#1 CONVERTER",emoji:"💰",desc:"$2Z Double Zero: tesis específica sobre un proyecto. +17 paid. Crypto CON tesis de inversión concreta es el formato ganador."},
+            {cat:"crypto_tesis",label:"Crypto + Tesis Concreta",eps:1,avgPaid:17.0,verdict:"#1 CONVERTER",emoji:"💰",desc:"$2Z Double Zero: tesis específica sobre un proyecto. +17 paid. Crypto CON tesis concreta es el formato ganador."},
             {cat:"tech",label:"Tech + Tesis",eps:1,avgPaid:13.0,verdict:"CONVERSION MACHINE",emoji:"🔬",desc:"Duolingo con Antonio Linares: análisis de empresa específica. +13 paid."},
-            {cat:"sponsor",label:"Sponsor",eps:1,avgPaid:12.0,verdict:"NO CANIBALIZAN",emoji:"🤝",desc:"E191 Wenia: +12 paid + $3.2K rev."},
-            {cat:"ai",label:"AI / Disruption",eps:3,avgPaid:6.7,verdict:"SOLID",emoji:"🤖",desc:"IA meteorito, OpenClaw, 2028. Convierte cuando hay tesis concreta."},
+            {cat:"ai",label:"AI / Disruption",eps:4,avgPaid:7.5,verdict:"SOLID CONVERTER",emoji:"🤖",desc:"5 señales del cambio (+12), meteorito IA (+8), OpenClaw (+7), 2028 (+3). El tema #1 por volumen. Convierte fuerte con tesis concreta."},
             {cat:"latam",label:"LATAM Geopolítica",eps:3,avgPaid:4.0,verdict:"MIXED",emoji:"🌎",desc:"Col vs Arg (+9) fuerte. Otros LATAM más débiles."},
             {cat:"politica",label:"Política",eps:2,avgPaid:2.5,verdict:"DÉBIL",emoji:"🏛️",desc:"Solo convierte con ángulo tech/energía."},
             {cat:"macro",label:"Macro / Predictions",eps:1,avgPaid:2.0,verdict:"NO CONVIERTE",emoji:"📊",desc:"Forecast: 66 free pero +2 paid. Gratis."},
-            {cat:"crypto",label:"Crypto sin Tesis",eps:3,avgPaid:0.3,verdict:"CERO",emoji:"₿",desc:"Saylor x2, Validators: narrativa broad sin tesis específica. +0.3 avg. Viene, mira, se va."},
+            {cat:"crypto",label:"Crypto sin Tesis",eps:3,avgPaid:0.3,verdict:"CERO",emoji:"₿",desc:"Saylor x2, Validators: narrativa broad sin tesis específica. +0.3 avg."},
           ];
           const sorted=[...EP_DATA].sort((a,b)=>epSort==="net"?b.net-a.net:epSort==="free"?b.free-a.free:b.rev-a.rev);
           const grade=(n)=>n>=10?{l:"CONVIERTE",c:"#22c55e",bg:"rgba(34,197,94,0.1)"}:n>=5?{l:"BUENO",c:"#3b82f6",bg:"rgba(59,130,246,0.1)"}:n>=2?{l:"OK",c:"#facc15",bg:"rgba(250,204,21,0.1)"}:n>=0?{l:"DÉBIL",c:"#71717a",bg:"rgba(113,113,122,0.1)"}:{l:"NEG",c:"#ef4444",bg:"rgba(239,68,68,0.1)"};
@@ -926,8 +925,8 @@ export default function GrowthDashboard(){
                     <div style={{fontSize:11,fontWeight:700,color:"#22C55E",marginBottom:6}}>✓ CONVIERTE (2+/mes)</div>
                     <div style={{fontSize:11,color:"#A1A1AA",lineHeight:1.8}}>
                       <strong style={{color:"#8b5cf6"}}>Crypto/Tech + tesis</strong> — $2Z, Duolingo. +15 avg.<br/>
-                      <strong style={{color:"#06b6d4"}}>AI con tesis</strong> — meteorito, OpenClaw. +6.7 avg.<br/>
-                      <strong style={{color:"#D4A843"}}>Sponsors</strong> — no canibalizan. +12.
+                      <strong style={{color:"#06b6d4"}}>AI / Disruption</strong> — 5 señales, meteorito, OpenClaw. +7.5 avg (4 eps).<br/>
+                      <strong style={{color:"#22c55e"}}>LATAM con confrontación</strong> — Col vs Arg. +9.
                     </div>
                   </div>
                   <div style={{background:"rgba(255,255,255,0.02)",borderRadius:8,padding:14}}>
