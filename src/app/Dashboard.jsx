@@ -619,7 +619,7 @@ export default function GrowthDashboard(){
             <div style={{fontSize:10,color:"#71717A",marginBottom:16}}>Other Substacks recommending 10AMPRO — free subscriber acquisition</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(3,1fr)",gap:10}}>
               {[
-                {name:"Hermanos Bilbao",subs:631,rev:"$0",color:"#22C55E",badge:"🔥 631 subs — #1"},
+                {name:"Hermanos Bilbao",subs:631,rev:"$0",color:"#F59E0B",badge:"⚠️ 631 subs · 0 paid"},
                 {name:"ARIAS FINANCIAL ACADEMY",subs:188,rev:"$1,360",color:"#FF6719",badge:"#2 all-time"},
                 {name:"Macrowise Newsletter",subs:80,rev:"$400",color:"#D4A843",badge:"finance niche"},
                 {name:"La Estrategia Emergente",subs:64,rev:"$0",color:"#818CF8",badge:"growing fast"},
@@ -809,7 +809,7 @@ export default function GrowthDashboard(){
             <div style={{fontSize:9,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Alto impacto — actuar esta semana</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10,marginBottom:20}}>
               {[
-                {signal:"🔥 Hermanos Bilbao: 631 subs all-time — #1 referrer",detail:"Explotó en Marzo con 533 subs en un solo mes. Pico de 85 subs en un solo día (Mar 17). Superó a ARIAS por 3x. Contactar para mantener la recomendación activa y explorar cross-promo.",color:"#22C55E",action:"DM/email esta semana"},
+                {signal:"⚠️ Hermanos Bilbao: 631 subs, $0 revenue — 0% paid",detail:"Biggest referrer by volume but ZERO paid conversions. 533 subs in March alone, 98 more in April — all free. Different audience profile vs ARIAS (18% paid) or Macrowise (12.5% paid). Volume is inflating sub count without monetizing. Welcome sequence for rec-sourced subs may help, but don't optimize for this channel.",color:"#F59E0B",action:"Audit welcome sequence for rec subs"},
                 {signal:"Marzo cerró con 917 subs — récord absoluto",detail:"Superó Abr 2025 (860, launch month). Conversión del 12.0% — la más alta en la historia. Substack Recs (633 de 917) son el motor. Visitantes también en récord: 7,666.",color:"#FF6719",action:"Mantener momentum de recs"},
                 {signal:"Google SEO: 241 subs all-time, $7.4K rev",detail:"13.9% conversión. 0→51→70→25 subs/mo (Ene→Feb→Mar). Segundo channel en revenue después de Substack. El contenido indexado de 10am.pro es un activo permanente.",color:"#4285F4",action:"Optimizar títulos/meta de posts"},
                 {signal:"Viernes = día de más revenue",detail:"Los viernes generan $9,136 en 2026 — 2x más que cualquier otro día. Coincide con premieres de podcast (Fri/Sat). Los subs del viernes PAGAN. Nunca mover el premiere del viernes.",color:"#D4A843",action:"Proteger el slot del viernes"},
@@ -824,7 +824,7 @@ export default function GrowthDashboard(){
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10,marginBottom:20}}>
               {[
                 {signal:"Notas de Hernán = 300+ subs de 60+ notas",detail:"Promedio 5 subs/nota, gratis. Top: 'Estar ocupado cuesta mucho $' (12), 'El DNA de 10ampro' (17), 'Tesis del 10x' (15). Temas meta + tesis macro convierten más. Publicar 2-3 notas/semana mínimo.",color:"#FF6719",action:"Cadencia de 3 notas/semana"},
-                {signal:"ARIAS FINANCIAL ACADEMY: 188 subs, $1.4K rev",detail:"#2 después de Hermanos Bilbao. 188 subs gratis pre-calificados en finanzas. Considerar alianza formal: cross-recs, guest episode, co-branded content.",color:"#FF6719",action:"Proponer alianza formal"},
+                {signal:"🏆 ARIAS FINANCIAL ACADEMY: 188 subs, $1.4K rev — 18% paid",detail:"The gold standard for recs. Pre-qualified finance audience that actually pays. 18.1% paid conversion rate vs 0% from Hermanos Bilbao. 1 ARIAS sub = 3.4× more valuable than 1 HB sub. This is the partnership to deepen — guest episode, co-branded content, formal alliance.",color:"#22C55E",action:"Proponer alianza formal"},
                 {signal:"La Estrategia Emergente: 64 subs (de 22 a 64)",detail:"Triplicó en Marzo con 51 subs nuevos. Aliado emergente — ahora #4 all-time en recs.",color:"#818CF8",action:"Monitor + DM si sigue creciendo"},
                 {signal:"Substack Onboarding: 453 subs gratis",detail:"Gente que se suscribe durante el signup flow de Substack. Crece cuando 10am.pro aparece en recs, leaderboards, y search dentro de Substack. Optimizar description y tags.",color:"#FF6719",action:"Optimizar perfil/tags Substack"},
               ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"12px 14px",background:"rgba(255,255,255,0.015)",borderRadius:8}}>
