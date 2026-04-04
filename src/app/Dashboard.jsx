@@ -176,10 +176,51 @@ export default function GrowthDashboard(){
             </div>
           </div>
           {/* Revenue stack targets */}
-          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px"}}>
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px",marginBottom:16}}>
             <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Revenue Stack → $41.7K/mo</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(5,1fr)",gap:10}}>
-              {[{l:"YouTube AdSense",c:latestPnl.youtube||0,t:6000,color:"#FF0000",n:"Plateau ~$5-6K"},{l:"Substack+Gumroad",c:latestPnl.stripe||0,t:15000,color:"#FF6719",n:"Core lever. Scale to 10K subs."},{l:"Sponsors",c:latestPnl.sponsors||0,t:5000,color:"#D4A843",n:"Media kit + recurring deals."},{l:"10AMPRO Pro",c:0,t:15000,color:"#818CF8",n:"New product. 150@$99."},{l:"Events+Other",c:(latestPnl.events||0)+(latestPnl.spotify||0),t:667,color:"#1DB954",n:"2 events/yr + Spotify."}].map((s,i)=>{const p=Math.min((s.c/s.t)*100,100);return(<div key={i} style={{background:"rgba(255,255,255,0.015)",border:`1px solid ${s.color}15`,borderRadius:8,padding:"14px"}}><div style={{fontSize:10,color:s.color,fontWeight:600,marginBottom:8}}>{s.l}</div><div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:6}}><span style={{fontSize:18,fontWeight:700,color:"#E4E4E7",fontFamily:"'Space Grotesk'"}}>{fmt(s.c)}</span><span style={{fontSize:10,color:"#71717A"}}>/{fmt(s.t)}</span></div><div style={{height:3,background:"rgba(255,255,255,0.03)",borderRadius:2,marginBottom:8}}><div style={{height:3,borderRadius:2,background:s.color,width:`${p}%`,opacity:0.6}}/></div><div style={{fontSize:9,color:"#71717A",lineHeight:1.5}}>{s.n}</div></div>)})}
+              {[{l:"YouTube AdSense",c:latestPnl.youtube||0,t:6000,color:"#FF0000",n:"Plateau ~$5-6K"},{l:"Substack+Gumroad",c:latestPnl.stripe||0,t:15000,color:"#FF6719",n:"Core lever. Scale to 10K subs."},{l:"Sponsors",c:latestPnl.sponsors||0,t:5000,color:"#D4A843",n:"Media kit + recurring deals."},{l:"10AMPRO Pro",c:0,t:15000,color:"#818CF8",n:"New product. 150@$99."},{l:"Events+AMAs",c:(latestPnl.events||0)+(latestPnl.spotify||0),t:2500,color:"#1DB954",n:"AMAs + physical + Spotify."}].map((s,i)=>{const p=Math.min((s.c/s.t)*100,100);return(<div key={i} style={{background:"rgba(255,255,255,0.015)",border:`1px solid ${s.color}15`,borderRadius:8,padding:"14px"}}><div style={{fontSize:10,color:s.color,fontWeight:600,marginBottom:8}}>{s.l}</div><div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:6}}><span style={{fontSize:18,fontWeight:700,color:"#E4E4E7",fontFamily:"'Space Grotesk'"}}>{fmt(s.c)}</span><span style={{fontSize:10,color:"#71717A"}}>/{fmt(s.t)}</span></div><div style={{height:3,background:"rgba(255,255,255,0.03)",borderRadius:2,marginBottom:8}}><div style={{height:3,borderRadius:2,background:s.color,width:`${p}%`,opacity:0.6}}/></div><div style={{fontSize:9,color:"#71717A",lineHeight:1.5}}>{s.n}</div></div>)})}
+            </div>
+          </div>
+          {/* Stripe ARR + Events & AMAs */}
+          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:16}}>
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px"}}>
+              <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Stripe Recurring ARR — $400 → $36K in 127 days</div>
+              <ResponsiveContainer width="100%" height={200}>
+                <ComposedChart data={[{d:"Nov",arr:400},{d:"Dec 5",arr:400},{d:"Dec 12",arr:1840},{d:"Dec 19",arr:2320},{d:"Dec 26",arr:2720},{d:"Jan 2",arr:4080},{d:"Jan 9",arr:7120},{d:"Jan 16",arr:10432},{d:"Jan 23",arr:13698},{d:"Jan 30",arr:15618},{d:"Feb 6",arr:21938},{d:"Feb 13",arr:21954},{d:"Feb 20",arr:24278},{d:"Feb 27",arr:25574},{d:"Mar 6",arr:28198},{d:"Mar 13",arr:31014},{d:"Mar 20",arr:33303},{d:"Mar 27",arr:33303},{d:"Apr 3",arr:36103}]} margin={{top:5,right:20,bottom:5,left:5}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)"/><XAxis dataKey="d" tick={{fontSize:8,fill:"#71717A"}} tickLine={false} axisLine={{stroke:"#1A1A2E"}} interval={mob?4:2}/><YAxis tick={{fontSize:9,fill:"#71717A"}} tickLine={false} axisLine={false} tickFormatter={v=>v>=1000?"$"+(v/1000).toFixed(0)+"K":"$"+v}/><Tooltip content={<TT/>}/>
+                  <Area type="monotone" dataKey="arr" fill="rgba(255,103,25,0.1)" stroke="#FF6719" strokeWidth={2.5} name="Stripe ARR"/>
+                </ComposedChart>
+              </ResponsiveContainer>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginTop:10}}>
+                {[{l:"Current ARR",v:"$36.1K",c:"#FF6719"},{l:"Stripe MRR",v:"$3,009",c:"#22C55E"},{l:"Daily Growth",v:"+$281/d",c:"#D4A843"}].map((m,i)=>(<div key={i} style={{textAlign:"center",padding:"6px 0"}}><div style={{fontSize:8,color:"#71717A",textTransform:"uppercase"}}>{m.l}</div><div style={{fontSize:15,fontWeight:700,color:m.c,fontFamily:"'Space Grotesk'"}}>{m.v}</div></div>))}
+              </div>
+              <div style={{marginTop:10,padding:"8px 12px",background:"rgba(255,103,25,0.04)",border:"1px solid rgba(255,103,25,0.1)",borderRadius:8}}>
+                <div style={{fontSize:10,color:"#71717A",lineHeight:1.5}}>Stripe ARR = recurring subscription revenue only (no YouTube, no events). Growing +$8.4K/mo. At this pace, Stripe alone hits <span style={{color:"#FF6719",fontWeight:600}}>$100K ARR by Aug 2026</span>.</div>
+              </div>
+            </div>
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px"}}>
+              <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Events & AMAs — Retention Engine</div>
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {[
+                  {name:"Alpha 63: Arias + AI",date:"Apr 6",type:"AMA",loc:"Google Meet",price:15,att:76,color:"#818CF8",badge:""},
+                  {name:"Alpha 64: Quantum + BTC",date:"Apr",type:"AMA",loc:"Google Meet",price:15,att:24,color:"#00F2EA",badge:""},
+                  {name:"Ep200 Fireside Chat",date:"May",type:"Physical",loc:"EAFIT Medellín",price:40,att:163,color:"#22C55E",badge:"🔥"},
+                  {name:"Último Almuerzo",date:"Apr",type:"Private",loc:"Terraza & Cava",price:0,att:30,color:"#D4A843",badge:"SOLD OUT"},
+                ].map((e,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",background:i%2===0?"rgba(255,255,255,0.015)":"transparent",borderRadius:6}}>
+                  <div style={{width:3,height:28,borderRadius:2,background:e.color,flexShrink:0}}/>
+                  <div style={{flex:1,minWidth:0}}><div style={{fontSize:11,color:"#E4E4E7",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.badge?e.badge+" ":""}{e.name}</div><div style={{fontSize:9,color:"#71717A"}}>{e.date} · {e.loc}</div></div>
+                  <div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:14,fontWeight:700,color:e.color,fontFamily:"'Space Grotesk'"}}>{e.att}</div><div style={{fontSize:8,color:e.badge==="SOLD OUT"?"#D4A843":"#71717A",fontWeight:e.badge==="SOLD OUT"?600:400}}>{e.badge==="SOLD OUT"?"AGOTADO":e.price>0?"$"+e.price:"Privado"}</div></div>
+                </div>))}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:10}}>
+                <div style={{background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.1)",borderRadius:8,padding:"8px 12px"}}><div style={{fontSize:8,color:"#71717A",textTransform:"uppercase"}}>Total Registrations</div><div style={{fontSize:18,fontWeight:700,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>293</div><div style={{fontSize:9,color:"#71717A"}}>4 events</div></div>
+                <div style={{background:"rgba(212,168,67,0.04)",border:"1px solid rgba(212,168,67,0.1)",borderRadius:8,padding:"8px 12px"}}><div style={{fontSize:8,color:"#71717A",textTransform:"uppercase"}}>Revenue Potential</div><div style={{fontSize:18,fontWeight:700,color:"#D4A843",fontFamily:"'Space Grotesk'"}}>~$8K</div><div style={{fontSize:9,color:"#71717A"}}>ticket sales</div></div>
+              </div>
+              <div style={{marginTop:10,padding:"8px 12px",background:"rgba(129,140,248,0.04)",border:"1px solid rgba(129,140,248,0.1)",borderRadius:8}}>
+                <div style={{fontSize:10,color:"#818CF8",fontWeight:600,marginBottom:2}}>AMAs = churn killer</div>
+                <div style={{fontSize:10,color:"#71717A",lineHeight:1.5}}>Monthly $15 AMAs keep paid subs engaged between episodes. Physical events convert community into IRL loyalty. Mar events revenue: $1,320 — new recurring line.</div>
+              </div>
             </div>
           </div>
         </div>)}
