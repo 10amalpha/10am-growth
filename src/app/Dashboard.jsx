@@ -9,7 +9,7 @@ const useIsMobile=()=>{const[m,setM]=useState(false);useEffect(()=>{const c=()=>
 const TT=({active,payload,label})=>{if(!active||!payload?.length)return null;return(<div style={{background:"rgba(8,10,15,0.96)",border:"1px solid rgba(34,197,94,0.25)",borderRadius:8,padding:"10px 14px",fontSize:11,fontFamily:"'JetBrains Mono',monospace"}}><p style={{color:"#22C55E",marginBottom:6,fontWeight:600,fontSize:12}}>{label}</p>{payload.map((p,i)=>(<p key={i} style={{color:p.color||"#A1A1AA",margin:"2px 0"}}>{p.name}: <span style={{fontWeight:700}}>{typeof p.value==="number"&&p.dataKey!=="margin"?fmt(p.value):p.value+(p.dataKey==="margin"?"%":"")}</span></p>))}</div>)};
 
 
-const EF_SECTIONS=[{key:"overview",label:"📊 Estado"},{key:"decision",label:"⚡ Decisión"},{key:"unconverted",label:"🎯 $0"},{key:"funnel",label:"📈 Funnel"},{key:"playbook",label:"🗺️ Plan"},{key:"comparison",label:"⚖️ vs"}];
+const EF_SECTIONS=[{key:"overview",label:"📊 Overview"},{key:"decision",label:"⚡ Decision"},{key:"unconverted",label:"🎯 $0 Channels"},{key:"funnel",label:"📈 Funnel"},{key:"playbook",label:"🗺️ Playbook"},{key:"comparison",label:"⚖️ Compare"}];
 const EfMetric=({label,value,sub,accent="#22C55E",mob})=>(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:mob?"10px 8px":"12px",textAlign:"center",minWidth:0}}><div style={{fontSize:mob?7:8,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:3}}>{label}</div><div style={{fontSize:mob?15:18,fontWeight:700,color:accent,fontFamily:"'Space Grotesk'"}}>{value}</div>{sub&&<div style={{fontSize:mob?8:9,color:"#71717A",marginTop:2}}>{sub}</div>}</div>);
 const EfBar=({label,value,max,color="#22C55E",suffix=""})=>{const p=Math.min((value/max)*100,100);return(<div style={{marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><span style={{fontSize:10,color:"#71717A"}}>{label}</span><span style={{fontSize:10,fontWeight:700,color}}>{typeof value==="number"?fmt(value):value}{suffix}</span></div><div style={{height:6,background:"rgba(255,255,255,0.04)",borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,background:color,width:`${p}%`,transition:"width 0.5s"}}/></div></div>);};
 
@@ -104,7 +104,7 @@ export default function GrowthDashboard(){
   const monthsToTarget=avgGrowth>0?Math.ceil(monthlyGap/avgGrowth):Infinity;
 
   const iS={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"8px 10px",color:"#E4E4E7",fontSize:13,fontFamily:"'JetBrains Mono',monospace",width:"100%",outline:"none"};
-  const TABS=[{key:"tracker",label:"🏁 $500K"},{key:"strategy",label:"🎯 Strategy"},{key:"emailfirst",label:"📧 Estrategia"},{key:"conversion",label:"🔄 Conversión"},{key:"pnl",label:"💵 P&L"},{key:"followers",label:"📈 Followers"},{key:"velocity",label:"🚀 Velocity"},{key:"revenue",label:"💰 Revenue"},{key:"profit",label:"📊 Profit"},{key:"model",label:"🔮 Model"},{key:"episodes",label:"🎬 Episodes"},{key:"admin",label:"⚙️ Admin"}];
+  const TABS=[{key:"tracker",label:"🏁 $500K"},{key:"strategy",label:"🎯 Strategy"},{key:"conversion",label:"🔄 Conversion"},{key:"financials",label:"💵 Financials"},{key:"audience",label:"📈 Audience"},{key:"admin",label:"⚙️ Admin"}];
   const[efSection,setEfSection]=useState("overview");
   const[epSort,setEpSort]=useState("net");
   const[epView,setEpView]=useState("matrix");
@@ -223,6 +223,15 @@ export default function GrowthDashboard(){
               </div>
             </div>
           </div>
+          {/* Revenue Model */}
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px",marginTop:16}}>
+          <div style={{fontSize:10,color:"#71717A",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>Revenue Model — per 1K followers</div>
+          <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:10,marginBottom:28}}>{[{t:15000,l:"$15K/mo"},{t:20000,l:"$20K/mo"},{t:30000,l:"$30K/mo"},{t:50000,l:"$50K/mo"}].map((t,i)=>{const rate=parseFloat(revPer1K)||0;const needed=rate>0?Math.round(t.t/rate*1000):0;const gap=needed-enhancedTotal;return(<div key={i} style={{background:i===0?"rgba(34,197,94,0.03)":"rgba(255,255,255,0.015)",border:`1px solid ${i===0?"rgba(34,197,94,0.1)":"rgba(255,255,255,0.03)"}`,borderRadius:8,padding:"16px"}}><div style={{fontSize:20,fontWeight:700,color:i===0?"#22C55E":"#D4A843",fontFamily:"'Space Grotesk'",marginBottom:8}}>{t.l}</div><div style={{fontSize:11,color:"#A1A1AA",marginBottom:4}}>Need: <span style={{fontWeight:600,color:"#E4E4E7"}}>{fmtK(needed)}</span></div><div style={{fontSize:11,color:"#A1A1AA"}}>Gap: <span style={{fontWeight:600,color:gap>0?"#F59E0B":"#22C55E"}}>{gap>0?"+"+fmtK(gap):"✓ Met"}</span></div></div>)})}</div>
+          <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.08)",borderRadius:8,padding:"16px 20px"}}><div style={{fontSize:12,color:"#D4A843",fontWeight:600,marginBottom:8}}>The 10AMPRO Flywheel</div><div style={{fontSize:11,color:"#71717A",lineHeight:1.6}}>TikTok/IG clips → YouTube episodes → Substack deep dives → Gumroad + Substack premium → Sponsors.</div></div>
+
+        {/* 📊 SHORTS → EMAIL */}
+                {/* 🔄 CONVERSIÓN — All Channels */}
+          </div>
         </div>)}
 
         {/* 🎯 STRATEGY */}
@@ -241,7 +250,7 @@ export default function GrowthDashboard(){
         {/* 💵 P&L */}
 
         {/* ════ 📧 ESTRATEGIA EMAIL FIRST ════ */}
-        {view==="emailfirst"&&(<div>
+        {view==="strategy"&&(<div>
             {/* Header */}
             <div style={{background:"linear-gradient(135deg,rgba(34,197,94,0.04),rgba(212,168,67,0.03))",border:"1px solid rgba(34,197,94,0.1)",borderRadius:12,padding:mob?"12px 14px":"16px 24px",marginBottom:16,display:"flex",flexDirection:mob?"column":"row",alignItems:mob?"flex-start":"center",justifyContent:"space-between",gap:mob?8:12}}>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -418,7 +427,7 @@ export default function GrowthDashboard(){
               <div style={{fontSize:9,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Playbook 3 Fases + Path Complementario</div>
 
               {[{n:1,title:"Captura Agresiva de Emails",color:"#22C55E",desc:"Meta: 500+ emails nuevos por mes. CTAs específicos en cada pieza de contenido. Cada short, cada podcast, cada post debe tener un CTA claro hacia Substack. IG Boosts direccionan tráfico a landing pages optimizadas en español.",tags:["Meta: 500+/mes","CTA en todo contenido","IG Boost → Landing","Spotify → Newsletter CTA"]},
-                {n:2,title:"Optimizar Conversión a Paid",color:"#F59E0B",desc:"Al llegar a 8-10K free subs, implementar welcome sequences automatizados en español. Segmentación por fuente de adquisición. A/B testing de copy y pricing.",tags:["Trigger: 8-10K free subs","Welcome sequences ES","A/B testing pricing","Segmentación por fuente"]},
+                {n:2,title:"Optimize Conversion a Paid",color:"#F59E0B",desc:"Al llegar a 8-10K free subs, implementar welcome sequences automatizados en español. Segmentación por fuente de adquisición. A/B testing de copy y pricing.",tags:["Trigger: 8-10K free subs","Welcome sequences ES","A/B testing pricing","Segmentación por fuente"]},
                 {n:3,title:"Lanzar Producto Mid-Tier $50-200/mes",color:"#818CF8",desc:"Comunidad premium con acceso directo, análisis exclusivos, calls grupales. 300 miembros a $99/mes = $30K MRR. Requiere masa crítica de audiencia comprometida.",tags:["$50-200/mes","300 × $99 = $30K MRR","Calls grupales","Análisis exclusivos"]}
               ].map(phase=>(<div key={phase.n} style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${phase.color}15`,borderRadius:10,padding:mob?"14px":"18px 20px",marginBottom:12,position:"relative",overflow:"hidden"}}>
                 <div style={{position:"absolute",top:0,left:0,width:3,height:"100%",background:phase.color}}/>
@@ -448,7 +457,7 @@ export default function GrowthDashboard(){
             {/* ── COMPARATIVO ── */}
             {efSection==="comparison"&&(<div>
               <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:mob?"14px":"20px 24px",marginBottom:16}}>
-                <div style={{fontSize:9,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>⚖️ Email vs Optimizar Conversión</div>
+                <div style={{fontSize:9,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>⚖️ Email Acquisition vs Conversion Optimization</div>
                 <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:mob?12:14}}>
 
                   {/* Email Column */}
@@ -469,7 +478,7 @@ export default function GrowthDashboard(){
                   <div style={{background:"rgba(239,68,68,0.03)",border:"1px solid rgba(239,68,68,0.1)",borderRadius:10,padding:mob?"14px":"20px"}}>
                     <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12,flexWrap:"wrap"}}>
                       <span style={{fontSize:18}}>🔧</span>
-                      <div><div style={{fontSize:12,fontWeight:700,color:"#EF4444"}}>Optimizar Conversión</div></div>
+                      <div><div style={{fontSize:12,fontWeight:700,color:"#EF4444"}}>Optimize Conversion</div></div>
                       <span style={{background:"rgba(239,68,68,0.1)",color:"#EF4444",padding:"1px 6px",borderRadius:3,fontSize:8,fontWeight:700}}>DEPRIORITIZADO</span>
                     </div>
                     {[["Pool disponible","3,500","#EF4444"],["Techo","~15-20%","#EF4444"],["Compounding","❌ No","#EF4444"],["Impacto (10→15%)","+$1,400/mo","#EF4444"],["Perfil retornos","Decreciente","#EF4444"]].map(([l,v,c],i)=>(<div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.03)"}}><span style={{fontSize:10,color:"#71717A"}}>{l}</span><span style={{fontSize:10,fontWeight:700,color:c}}>{v}</span></div>))}
@@ -499,7 +508,7 @@ export default function GrowthDashboard(){
           </div>)}
 
         {/* 💵 P&L CONTINUES */}
-        {view==="pnl"&&(<div>
+        {view==="financials"&&(<div>
           <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px",marginBottom:16}}>
             <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Monthly P&L — Rev vs Expenses vs Take-Home</div>
             <ResponsiveContainer width="100%" height={300}>
@@ -529,13 +538,13 @@ export default function GrowthDashboard(){
         </div>)}
 
         {/* 📈 FOLLOWERS */}
-        {view==="followers"&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
+        {view==="audience"&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
           <div style={{fontSize:10,color:"#71717A",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>Latest: {fmtMonth(latestFollowers.month)} — {enhancedChannels}/8 Captured {liveStats&&(liveStats.youtube||liveStats.instagram)&&<span style={{color:"#22C55E",fontSize:8,background:"rgba(34,197,94,0.1)",padding:"2px 6px",borderRadius:3,marginLeft:8}}>● LIVE {liveStats.youtube?"YT":""}{liveStats.youtube&&liveStats.instagram?"+":""}{liveStats.instagram?"IG":""}</span>}</div>
           <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:10}}>{CH_META.map(ch=>{const val=Number(enhancedFollowers[ch.dbCol])||0;const isLive=!!liveFollowerOverrides[ch.key];const pv=prevFollowers?Number(prevFollowers[ch.dbCol])||0:0;const d=prevFollowers?val-pv:0;return(<div key={ch.key} style={{background:val>0?"rgba(255,255,255,0.02)":"rgba(255,255,255,0.01)",border:val>0?`1px solid ${ch.color}20`:"1px solid rgba(255,255,255,0.03)",borderRadius:8,padding:"14px 16px",position:"relative",overflow:"hidden"}}>{val>0&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${ch.color}60,transparent)`}}/>}<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:16}}>{ch.key==="linkedin"?<span style={{fontWeight:800,color:ch.color,fontSize:13}}>in</span>:ch.icon}</span><span style={{fontSize:11,color:"#A1A1AA",fontWeight:500}}>{ch.name}</span>{isLive?<span style={{fontSize:7,marginLeft:"auto",fontWeight:700,letterSpacing:"0.08em",padding:"1px 5px",borderRadius:3,color:"#22C55E",background:"rgba(34,197,94,0.12)"}}>● LIVE</span>:<span style={{fontSize:7,marginLeft:"auto",fontWeight:700,letterSpacing:"0.08em",padding:"1px 5px",borderRadius:3,color:val>0?"#22C55E":"#F59E0B",background:val>0?"rgba(34,197,94,0.08)":"rgba(245,158,11,0.08)"}}>{val>0?"✓":"—"}</span>}</div><div style={{fontSize:24,fontWeight:700,color:val>0?ch.color:"#71717A",fontFamily:"'Space Grotesk'"}}>{val>0?fmtK(val):"—"}</div>{d!==0&&<div style={{fontSize:10,color:d>0?"#22C55E":"#EF4444",marginTop:4}}>{d>0?"+":""}{fmtK(d)} ({pct(val,pv)}%)</div>}</div>)})}</div>
         </div>)}
 
         {/* 🚀 VELOCITY */}
-        {view==="velocity"&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
+        {view==="audience"&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
           {!growthData?(<div style={{textAlign:"center",padding:40}}><div style={{fontSize:36,marginBottom:12}}>📊</div><div style={{fontSize:14,color:"#A1A1AA",marginBottom:8}}>Need 2+ snapshots for velocity</div></div>):(
           <><div style={{fontSize:10,color:"#71717A",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>Growth: {growthData.fromMonth} → {growthData.toMonth}</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(3,1fr)",gap:12,marginBottom:24}}>
@@ -548,7 +557,7 @@ export default function GrowthDashboard(){
         </div>)}
 
         {/* 💰 REVENUE */}
-        {view==="revenue"&&revenueData.length>0&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px 16px 10px"}}>
+        {view==="financials"&&revenueData.length>0&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px 16px 10px"}}>
           <div style={{fontSize:10,color:"#71717A",marginBottom:14,paddingLeft:8,textTransform:"uppercase",letterSpacing:"0.1em"}}>Monthly Revenue — Stacked (Supabase)</div>
           <ResponsiveContainer width="100%" height={340}>
             <BarChart data={revenueData} margin={{top:5,right:20,bottom:5,left:5}}><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)"/><XAxis dataKey="month" tick={{fontSize:9,fill:"#71717A"}} tickLine={false} axisLine={{stroke:"#1A1A2E"}}/><YAxis tick={{fontSize:10,fill:"#71717A"}} tickLine={false} axisLine={false} tickFormatter={v=>fmt(v)}/><Tooltip content={<TT/>}/><Bar dataKey="youtube" stackId="a" fill="#FF0000" name="YouTube"/><Bar dataKey="gumroad_substack" stackId="a" fill="#FF6719" name="Gumroad+Substack"/><Bar dataKey="sponsors" stackId="a" fill="#D4A843" name="Sponsors"/><Bar dataKey="spotify" stackId="a" fill="#1DB954" name="Spotify"/><Bar dataKey="events" stackId="a" fill="#818CF8" name="Events" radius={[3,3,0,0]}/></BarChart>
@@ -557,7 +566,7 @@ export default function GrowthDashboard(){
         </div>)}
 
         {/* 📊 PROFIT */}
-        {view==="profit"&&profitData.length>0&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px 16px 10px"}}>
+        {view==="financials"&&profitData.length>0&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px 16px 10px"}}>
           <div style={{fontSize:10,color:"#71717A",marginBottom:14,paddingLeft:8,textTransform:"uppercase",letterSpacing:"0.1em"}}>Revenue vs Expenses — Margin %</div>
           <ResponsiveContainer width="100%" height={340}>
             <ComposedChart data={profitData} margin={{top:5,right:30,bottom:5,left:5}}><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)"/><XAxis dataKey="month" tick={{fontSize:9,fill:"#71717A"}} tickLine={false} axisLine={{stroke:"#1A1A2E"}}/><YAxis yAxisId="money" tick={{fontSize:10,fill:"#71717A"}} tickLine={false} axisLine={false} tickFormatter={v=>fmt(v)}/><YAxis yAxisId="pct" orientation="right" tick={{fontSize:10,fill:"#71717A"}} tickLine={false} axisLine={false} tickFormatter={v=>v+"%"} domain={[0,100]}/><Tooltip content={<TT/>}/><Bar yAxisId="money" dataKey="total" name="Revenue" radius={[3,3,0,0]}>{profitData.map((_,i)=><Cell key={i} fill={i===profitData.length-1?"rgba(34,197,94,0.5)":"rgba(34,197,94,0.15)"}/>)}</Bar><Bar yAxisId="money" dataKey="expenses" name="Expenses" radius={[3,3,0,0]}>{profitData.map((_,i)=><Cell key={i} fill={i===profitData.length-1?"rgba(239,68,68,0.5)":"rgba(239,68,68,0.12)"}/>)}</Bar><Line yAxisId="pct" type="monotone" dataKey="margin" stroke="#D4A843" strokeWidth={2} dot={{r:3,fill:"#D4A843"}} name="Margin %"/></ComposedChart>
@@ -565,7 +574,7 @@ export default function GrowthDashboard(){
         </div>)}
 
         {/* 🔮 MODEL */}
-        {view==="model"&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
+        {false&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
           <div style={{fontSize:10,color:"#71717A",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>Revenue Model — per 1K followers</div>
           <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:10,marginBottom:28}}>{[{t:15000,l:"$15K/mo"},{t:20000,l:"$20K/mo"},{t:30000,l:"$30K/mo"},{t:50000,l:"$50K/mo"}].map((t,i)=>{const rate=parseFloat(revPer1K)||0;const needed=rate>0?Math.round(t.t/rate*1000):0;const gap=needed-enhancedTotal;return(<div key={i} style={{background:i===0?"rgba(34,197,94,0.03)":"rgba(255,255,255,0.015)",border:`1px solid ${i===0?"rgba(34,197,94,0.1)":"rgba(255,255,255,0.03)"}`,borderRadius:8,padding:"16px"}}><div style={{fontSize:20,fontWeight:700,color:i===0?"#22C55E":"#D4A843",fontFamily:"'Space Grotesk'",marginBottom:8}}>{t.l}</div><div style={{fontSize:11,color:"#A1A1AA",marginBottom:4}}>Need: <span style={{fontWeight:600,color:"#E4E4E7"}}>{fmtK(needed)}</span></div><div style={{fontSize:11,color:"#A1A1AA"}}>Gap: <span style={{fontWeight:600,color:gap>0?"#F59E0B":"#22C55E"}}>{gap>0?"+"+fmtK(gap):"✓ Met"}</span></div></div>)})}</div>
           <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.08)",borderRadius:8,padding:"16px 20px"}}><div style={{fontSize:12,color:"#D4A843",fontWeight:600,marginBottom:8}}>The 10AMPRO Flywheel</div><div style={{fontSize:11,color:"#71717A",lineHeight:1.6}}>TikTok/IG clips → YouTube episodes → Substack deep dives → Gumroad + Substack premium → Sponsors.</div></div>
@@ -655,8 +664,8 @@ export default function GrowthDashboard(){
 
           {/* Monthly Email Capture */}
           <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:12,padding:"20px",marginBottom:16}}>
-            <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4}}>📧 Emails Capturados por Mes</div>
-            <div style={{fontSize:10,color:"#71717A",marginBottom:16}}>Suscriptores nuevos + visitantes + conversión mensual</div>
+            <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:4}}>📧 Monthly Email Capture</div>
+            <div style={{fontSize:10,color:"#71717A",marginBottom:16}}>New subscribers + visitors + conversion rate per month</div>
             <div style={{overflowX:"auto"}}>
               <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
                 <thead><tr>
@@ -689,19 +698,19 @@ export default function GrowthDashboard(){
             </div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(3,1fr)",gap:10,marginTop:16}}>
               <div style={{background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.15)",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",marginBottom:4}}>Promedio Mensual (Q1 2026)</div>
+                <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",marginBottom:4}}>Monthly Average (Q1 2026)</div>
                 <div style={{fontSize:20,fontWeight:700,color:"#22C55E",fontFamily:"'Space Grotesk'"}}>{Math.round((605+464+917)/3)}/mo</div>
                 <div style={{fontSize:10,color:"#71717A",marginTop:2}}>vs 207/mo en H2 2025</div>
               </div>
               <div style={{background:"rgba(255,103,25,0.04)",border:"1px solid rgba(255,103,25,0.15)",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",marginBottom:4}}>Mejor Mes</div>
+                <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",marginBottom:4}}>Best Month</div>
                 <div style={{fontSize:20,fontWeight:700,color:"#FF6719",fontFamily:"'Space Grotesk'"}}>{917}</div>
-                <div style={{fontSize:10,color:"#71717A",marginTop:2}}>Mar 2026 — récord absoluto</div>
+                <div style={{fontSize:10,color:"#71717A",marginTop:2}}>Mar 2026 — all-time record</div>
               </div>
               <div style={{background:"rgba(212,168,67,0.04)",border:"1px solid rgba(212,168,67,0.15)",borderRadius:8,padding:"12px 14px"}}>
-                <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",marginBottom:4}}>Conversión Mar 2026</div>
+                <div style={{fontSize:9,color:"#52525B",textTransform:"uppercase",marginBottom:4}}>March 2026 Conversion</div>
                 <div style={{fontSize:20,fontWeight:700,color:"#D4A843",fontFamily:"'Space Grotesk'"}}>12.0%</div>
-                <div style={{fontSize:10,color:"#71717A",marginTop:2}}>Más alta desde launch</div>
+                <div style={{fontSize:10,color:"#71717A",marginTop:2}}>Highest since launch</div>
               </div>
             </div>
           </div>
@@ -802,17 +811,17 @@ export default function GrowthDashboard(){
 
           {/* Emerging Signals — Expanded */}
           <div style={{background:"rgba(212,168,67,0.03)",border:"1px solid rgba(212,168,67,0.1)",borderRadius:12,padding:"20px"}}>
-            <div style={{fontSize:12,color:"#D4A843",fontWeight:600,marginBottom:4}}>Señales emergentes & accionables</div>
-            <div style={{fontSize:10,color:"#71717A",marginBottom:16}}>Insights del CSV de Substack sources — datos reales, no estimados</div>
+            <div style={{fontSize:12,color:"#D4A843",fontWeight:600,marginBottom:4}}>Emerging signals & action items</div>
+            <div style={{fontSize:10,color:"#71717A",marginBottom:16}}>From Substack sources CSV — real data, not estimates</div>
 
             {/* Tier 1: High Impact */}
-            <div style={{fontSize:9,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Alto impacto — actuar esta semana</div>
+            <div style={{fontSize:9,color:"#22C55E",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>High impact — act this week</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10,marginBottom:20}}>
               {[
                 {signal:"⚠️ Hermanos Bilbao: 631 subs, $0 revenue — 0% paid",detail:"Biggest referrer by volume but ZERO paid conversions. 533 subs in March alone, 98 more in April — all free. Different audience profile vs ARIAS (18% paid) or Macrowise (12.5% paid). Volume is inflating sub count without monetizing. Welcome sequence for rec-sourced subs may help, but don't optimize for this channel.",color:"#F59E0B",action:"Audit welcome sequence for rec subs"},
-                {signal:"Marzo cerró con 917 subs — récord absoluto",detail:"Superó Abr 2025 (860, launch month). Conversión del 12.0% — la más alta en la historia. Substack Recs (633 de 917) son el motor. Visitantes también en récord: 7,666.",color:"#FF6719",action:"Mantener momentum de recs"},
-                {signal:"Google SEO: 241 subs all-time, $7.4K rev",detail:"13.9% conversión. 0→51→70→25 subs/mo (Ene→Feb→Mar). Segundo channel en revenue después de Substack. El contenido indexado de 10am.pro es un activo permanente.",color:"#4285F4",action:"Optimizar títulos/meta de posts"},
-                {signal:"Viernes = día de más revenue",detail:"Los viernes generan $9,136 en 2026 — 2x más que cualquier otro día. Coincide con premieres de podcast (Fri/Sat). Los subs del viernes PAGAN. Nunca mover el premiere del viernes.",color:"#D4A843",action:"Proteger el slot del viernes"},
+                {signal:"Marzo cerró con 917 subs — all-time record",detail:"Superó Abr 2025 (860, launch month). Conversión del 12.0% — la más alta en la historia. Substack Recs (633 de 917) son el motor. Visitantes también en récord: 7,666.",color:"#FF6719",action:"Maintain recs momentum"},
+                {signal:"Google SEO: 241 subs all-time, $7.4K rev",detail:"13.9% conversión. 0→51→70→25 subs/mo (Ene→Feb→Mar). Segundo channel en revenue después de Substack. El contenido indexado de 10am.pro es un activo permanente.",color:"#4285F4",action:"Optimize post titles/meta"},
+                {signal:"Viernes = día de más revenue",detail:"Los viernes generan $9,136 en 2026 — 2x más que cualquier otro día. Coincide con premieres de podcast (Fri/Sat). Los subs del viernes PAGAN. Nunca mover el premiere del viernes.",color:"#D4A843",action:"Protect the Friday slot"},
               ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"12px 14px",background:"rgba(255,255,255,0.02)",border:`1px solid ${s.color}15`,borderRadius:8}}>
                 <div style={{width:4,borderRadius:2,background:s.color,flexShrink:0}}/>
                 <div style={{flex:1}}><div style={{fontSize:12,color:"#E4E4E7",fontWeight:600,marginBottom:3}}>{s.signal}</div><div style={{fontSize:10,color:"#71717A",lineHeight:1.5,marginBottom:6}}>{s.detail}</div><div style={{fontSize:9,color:s.color,fontWeight:600,background:`${s.color}10`,display:"inline-block",padding:"2px 8px",borderRadius:3}}>→ {s.action}</div></div>
@@ -820,13 +829,13 @@ export default function GrowthDashboard(){
             </div>
 
             {/* Tier 2: Growth Levers */}
-            <div style={{fontSize:9,color:"#818CF8",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Palancas de crecimiento — optimizar este mes</div>
+            <div style={{fontSize:9,color:"#818CF8",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Growth levers — optimize this month</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10,marginBottom:20}}>
               {[
-                {signal:"Notas de Hernán = 300+ subs de 60+ notas",detail:"Promedio 5 subs/nota, gratis. Top: 'Estar ocupado cuesta mucho $' (12), 'El DNA de 10ampro' (17), 'Tesis del 10x' (15). Temas meta + tesis macro convierten más. Publicar 2-3 notas/semana mínimo.",color:"#FF6719",action:"Cadencia de 3 notas/semana"},
-                {signal:"🏆 ARIAS FINANCIAL ACADEMY: 188 subs, $1.4K rev — 18% paid",detail:"The gold standard for recs. Pre-qualified finance audience that actually pays. 18.1% paid conversion rate vs 0% from Hermanos Bilbao. 1 ARIAS sub = 3.4× more valuable than 1 HB sub. This is the partnership to deepen — guest episode, co-branded content, formal alliance.",color:"#22C55E",action:"Proponer alianza formal"},
-                {signal:"La Estrategia Emergente: 64 subs (de 22 a 64)",detail:"Triplicó en Marzo con 51 subs nuevos. Aliado emergente — ahora #4 all-time en recs.",color:"#818CF8",action:"Monitor + DM si sigue creciendo"},
-                {signal:"Substack Onboarding: 453 subs gratis",detail:"Gente que se suscribe durante el signup flow de Substack. Crece cuando 10am.pro aparece en recs, leaderboards, y search dentro de Substack. Optimizar description y tags.",color:"#FF6719",action:"Optimizar perfil/tags Substack"},
+                {signal:"Notas de Hernán = 300+ subs de 60+ notas",detail:"Promedio 5 subs/nota, gratis. Top: 'Estar ocupado cuesta mucho $' (12), 'El DNA de 10ampro' (17), 'Tesis del 10x' (15). Temas meta + tesis macro convierten más. Publicar 2-3 notas/semana mínimo.",color:"#FF6719",action:"3 notes/week cadence"},
+                {signal:"🏆 ARIAS FINANCIAL ACADEMY: 188 subs, $1.4K rev — 18% paid",detail:"The gold standard for recs. Pre-qualified finance audience that actually pays. 18.1% paid conversion rate vs 0% from Hermanos Bilbao. 1 ARIAS sub = 3.4× more valuable than 1 HB sub. This is the partnership to deepen — guest episode, co-branded content, formal alliance.",color:"#22C55E",action:"Propose formal alliance"},
+                {signal:"La Estrategia Emergente: 64 subs (de 22 a 64)",detail:"Triplicó en Marzo con 51 subs nuevos. Aliado emergente — ahora #4 all-time en recs.",color:"#818CF8",action:"Monitor + DM if keeps growing"},
+                {signal:"Substack Onboarding: 453 subs gratis",detail:"Gente que se suscribe durante el signup flow de Substack. Crece cuando 10am.pro aparece en recs, leaderboards, y search dentro de Substack. Optimizar description y tags.",color:"#FF6719",action:"Optimize Substack profile/tags"},
               ].map((s,i)=>(<div key={i} style={{display:"flex",gap:10,padding:"12px 14px",background:"rgba(255,255,255,0.015)",borderRadius:8}}>
                 <div style={{width:4,borderRadius:2,background:s.color,flexShrink:0}}/>
                 <div style={{flex:1}}><div style={{fontSize:12,color:"#E4E4E7",fontWeight:600,marginBottom:3}}>{s.signal}</div><div style={{fontSize:10,color:"#71717A",lineHeight:1.5,marginBottom:6}}>{s.detail}</div><div style={{fontSize:9,color:s.color,fontWeight:600,background:`${s.color}10`,display:"inline-block",padding:"2px 8px",borderRadius:3}}>→ {s.action}</div></div>
@@ -834,7 +843,7 @@ export default function GrowthDashboard(){
             </div>
 
             {/* Tier 3: Watch & Learn */}
-            <div style={{fontSize:9,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Monitorear — señales tempranas</div>
+            <div style={{fontSize:9,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,fontWeight:600}}>Monitor — early signals</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:10}}>
               {[
                 {signal:"Shares + Gifts: 131 + 19 subs all-time",detail:"Word-of-mouth activo. La gente comparte y regala 10am.pro. Señal fuerte de product-market fit con la audiencia actual.",color:"#22C55E"},
@@ -851,7 +860,7 @@ export default function GrowthDashboard(){
 
 
         {/* 🎬 EPISODES INTELLIGENCE */}
-        {view==="episodes"&&(()=>{
+        {view==="conversion"&&(()=>{
           const EP_DATA=[
             {ep:"E199",title:"$2Z Double Zero: Internet del futuro",date:"Mar 12",cat:"crypto_tesis",catLabel:"Crypto + Tesis",free:36,org:34,paid:22,churn:5,net:17,rev:480},
             {ep:"E192",title:"Duolingo: IA redefiniendo aprendizaje",date:"Feb 5",cat:"tech",catLabel:"Tech + Tesis",free:46,org:42,paid:13,churn:0,net:13,rev:960},
