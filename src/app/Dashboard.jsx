@@ -573,6 +573,53 @@ export default function GrowthDashboard(){
           </ResponsiveContainer>
         </div>)}
 
+        {/* SUBSCRIBER HEALTH — Churn Tracking */}
+        {view==="financials"&&(<div style={{marginTop:16}}>
+          <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:16,marginBottom:16}}>
+            {/* Left: Subscriber mix + churn gauge */}
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px"}}>
+              <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Subscriber Health — April 2026</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
+                {[{l:"Active Subs",v:"61",c:"#22C55E"},{l:"Trialing",v:"9",c:"#818CF8"},{l:"At Risk",v:"5",c:"#EF4444"}].map((m,i)=>(<div key={i} style={{textAlign:"center",padding:"10px 0",background:"rgba(255,255,255,0.015)",borderRadius:8}}><div style={{fontSize:8,color:"#71717A",textTransform:"uppercase"}}>{m.l}</div><div style={{fontSize:20,fontWeight:700,color:m.c,fontFamily:"'Space Grotesk'"}}>{m.v}</div></div>))}
+              </div>
+              <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>MRR by risk level</div>
+              {[{l:"Locked (Annual/Black)",v:"$888",w:"32%",c:"#22C55E",desc:"25 subs — won't churn until 2027"},{l:"At Risk (Monthly $40)",v:"$1,915",w:"68%",c:"#F59E0B",desc:"46 monthly subs — can cancel anytime"},{l:"Delinquent (failed pay)",v:"$160",w:"6%",c:"#EF4444",desc:"4 subs with failed payments"}].map((r,i)=>(<div key={i} style={{marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}><span style={{fontSize:11,color:r.c,fontWeight:600}}>{r.l}</span><span style={{fontSize:12,fontWeight:700,color:"#E4E4E7",fontFamily:"'JetBrains Mono'"}}>{r.v}/mo</span></div><div style={{height:5,background:"rgba(255,255,255,0.04)",borderRadius:3,overflow:"hidden",marginBottom:3}}><div style={{height:"100%",borderRadius:3,background:r.c,width:r.w,opacity:0.6}}/></div><div style={{fontSize:9,color:"#52525B"}}>{r.desc}</div></div>))}
+            </div>
+            {/* Right: Cohort retention waterfall */}
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px"}}>
+              <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Cohort Retention — Monthly Subs Only</div>
+              <div style={{fontSize:9,color:"#52525B",marginBottom:16}}>Annual/Black excluded — they're locked in. Only tracking $40/mo churn risk.</div>
+              {[
+                {cohort:"Jan 2026",total:12,data:[{m:"M1",r:12,p:100},{m:"M2",r:10,p:83},{m:"M3",r:8,p:67}],c:"#22C55E"},
+                {cohort:"Feb 2026",total:16,data:[{m:"M1",r:16,p:100},{m:"M2",r:14,p:88}],c:"#818CF8"},
+                {cohort:"Mar 2026",total:15,data:[{m:"M1",r:15,p:100}],c:"#FF6719"},
+              ].map((co,i)=>(<div key={i} style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{fontSize:11,color:co.c,fontWeight:600}}>{co.cohort}</span><span style={{fontSize:10,color:"#71717A"}}>{co.total} started</span></div><div style={{display:"flex",gap:4}}>{co.data.map((d,j)=>(<div key={j} style={{flex:1,textAlign:"center"}}><div style={{height:32,background:"rgba(255,255,255,0.04)",borderRadius:4,overflow:"hidden",position:"relative",marginBottom:3}}><div style={{height:"100%",background:co.c,opacity:0.15+d.p/200,width:"100%",borderRadius:4}}/><div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",fontSize:11,fontWeight:700,color:d.p>=80?"#E4E4E7":d.p>=60?"#D4A843":"#EF4444"}}>{d.p}%</div></div><div style={{fontSize:8,color:"#52525B"}}>{d.m} ({d.r}/{co.total})</div></div>))}{[...Array(3-co.data.length)].map((_,j)=>(<div key={`e${j}`} style={{flex:1,textAlign:"center"}}><div style={{height:32,background:"rgba(255,255,255,0.02)",borderRadius:4,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:3}}><span style={{fontSize:9,color:"#3F3F46"}}>—</span></div><div style={{fontSize:8,color:"#3F3F46"}}>M{co.data.length+j+1}</div></div>))}</div></div>))}
+              <div style={{marginTop:12,padding:"10px 12px",background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.1)",borderRadius:8}}>
+                <div style={{fontSize:10,color:"#22C55E",fontWeight:600,marginBottom:2}}>Churn rate: ~15%/mo on monthly subs</div>
+                <div style={{fontSize:10,color:"#71717A",lineHeight:1.5}}>Losing ~2 monthly subs/month ($80 MRR). Offset by 15-20 new subs/month. Feb cohort improving (88% M2 vs 83% in Jan). Watch March cohort at M2 in May to see if AMAs are working.</div>
+              </div>
+            </div>
+          </div>
+          {/* Risk flags */}
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(239,68,68,0.1)",borderRadius:12,padding:"16px 20px"}}>
+            <div style={{fontSize:10,color:"#EF4444",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,fontWeight:600}}>Churn Risk Flags</div>
+            <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr 1fr",gap:10}}>
+              <div style={{padding:"10px 14px",background:"rgba(239,68,68,0.03)",borderRadius:8,border:"1px solid rgba(239,68,68,0.08)"}}>
+                <div style={{fontSize:11,color:"#EF4444",fontWeight:600,marginBottom:4}}>4 Delinquent — $160/mo</div>
+                <div style={{fontSize:10,color:"#71717A",lineHeight:1.5}}>Failed payments. These subs will drop unless card is updated. Consider: automated dunning email + WhatsApp reminder.</div>
+              </div>
+              <div style={{padding:"10px 14px",background:"rgba(245,158,11,0.03)",borderRadius:8,border:"1px solid rgba(245,158,11,0.08)"}}>
+                <div style={{fontSize:11,color:"#F59E0B",fontWeight:600,marginBottom:4}}>1 Black Cancel — $888/yr</div>
+                <div style={{fontSize:10,color:"#71717A",lineHeight:1.5}}>Highest-value subscriber set to cancel at period end. Personal outreach from Hernán could save it. Worth a 1:1 message.</div>
+              </div>
+              <div style={{padding:"10px 14px",background:"rgba(129,140,248,0.03)",borderRadius:8,border:"1px solid rgba(129,140,248,0.08)"}}>
+                <div style={{fontSize:11,color:"#818CF8",fontWeight:600,marginBottom:4}}>37 Single-Payment — 61% of active</div>
+                <div style={{fontSize:10,color:"#71717A",lineHeight:1.5}}>61% of active subs have only paid once. Most are new (Mar/Apr), but watch closely at M2. Welcome sequence + AMA invite = key retention levers.</div>
+              </div>
+            </div>
+          </div>
+        </div>)}
+
         {/* 🔮 MODEL */}
         {false&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
           <div style={{fontSize:10,color:"#71717A",marginBottom:20,textTransform:"uppercase",letterSpacing:"0.1em"}}>Revenue Model — per 1K followers</div>
