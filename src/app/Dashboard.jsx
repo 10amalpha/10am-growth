@@ -155,6 +155,27 @@ export default function GrowthDashboard(){
 
         {/* 🏁 $500K TRACKER */}
         {view==="tracker"&&(<div>
+          {/* CONTENT → REVENUE FUNNEL */}
+          <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px",marginBottom:16}}>
+            <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:16}}>Content → Revenue Funnel — March 2026</div>
+            <div style={{display:"flex",flexDirection:"column",gap:0}}>
+              {[
+                {stage:"Shorts",vol:"175,137",unit:"views",conv:"4.4%",convLabel:"click to Substack",color:"#E1306C",owner:"El Gordo",cost:"$594/mo",width:"100%"},
+                {stage:"Episodes",vol:"~125K",unit:"YT+Spotify plays",conv:"6.1%",convLabel:"visit Substack",color:"#FF0000",owner:"Dario + Hernan",cost:"$4,195 (legacy, declining)",width:"72%"},
+                {stage:"Substack visitors",vol:"7,666",unit:"uniques",conv:"12.0%",convLabel:"subscribe (record)",color:"#4285F4",owner:"SEO + all CTAs",cost:"—",width:"44%"},
+                {stage:"Free subscribers",vol:"917",unit:"new (284 quality)",conv:"2.2%",convLabel:"convert to paid",color:"#FF6719",owner:"Hernan",cost:"Deep dives + Notes",width:"28%"},
+                {stage:"Paid subscribers",vol:"20",unit:"new paid",conv:"88%",convLabel:"retained at M2",color:"#22C55E",owner:"Retention stack",cost:"$9,200 rev",width:"16%"},
+                {stage:"Recurring MRR",vol:"$3,009",unit:"Stripe MRR",conv:"",convLabel:"",color:"#D4A843",owner:"",cost:"$36.1K ARR",width:"10%"},
+              ].map((s,i)=>(<div key={i}><div style={{display:"flex",alignItems:"stretch",minHeight:mob?56:48}}><div style={{width:s.width,minWidth:mob?"60%":"40%",background:`${s.color}10`,borderLeft:`3px solid ${s.color}`,display:"flex",alignItems:"center",padding:"8px 14px",transition:"width 0.3s"}}><div style={{flex:1,minWidth:0}}><div style={{fontSize:mob?10:11,color:"#71717A"}}>{s.stage}</div><div style={{fontSize:mob?16:18,fontWeight:700,color:s.color,fontFamily:"'Space Grotesk'"}}>{s.vol} <span style={{fontSize:11,fontWeight:400,color:"#71717A"}}>{s.unit}</span></div></div>{!mob&&s.owner&&<div style={{textAlign:"right",flexShrink:0,marginLeft:12}}><div style={{fontSize:9,color:"#52525B"}}>{s.owner}</div><div style={{fontSize:10,color:"#71717A",fontFamily:"'JetBrains Mono'"}}>{s.cost}</div></div>}</div></div>{s.conv&&<div style={{padding:"3px 0 3px 20px"}}><span style={{fontSize:10,color:"#71717A",fontFamily:"'JetBrains Mono'",background:"rgba(255,255,255,0.03)",padding:"2px 8px",borderRadius:4,border:"1px solid rgba(255,255,255,0.04)"}}>{s.conv} {s.convLabel}</span></div>}</div>))}
+            </div>
+            {/* Unit economics row */}
+            <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:8,marginTop:16,paddingTop:16,borderTop:"1px solid rgba(255,255,255,0.04)"}}>
+              {[{l:"CAC (all-in)",v:"$90",c:"#E24B4A",s:"$1,810 / 20 new paid"},{l:"Est. LTV (6mo)",v:"$240",c:"#22C55E",s:"$40/mo × 6mo avg"},{l:"LTV / CAC",v:"2.7x",c:"#378ADD",s:"Target: 3x+"},{l:"Margin",v:"87%",c:"#D4A843",s:"$11.9K / $13.7K"}].map((m,i)=>(<div key={i} style={{textAlign:"center",padding:"8px",background:"rgba(255,255,255,0.015)",borderRadius:8}}><div style={{fontSize:8,color:"#52525B",textTransform:"uppercase"}}>{m.l}</div><div style={{fontSize:16,fontWeight:700,color:m.c,fontFamily:"'Space Grotesk'"}}>{m.v}</div><div style={{fontSize:9,color:"#52525B"}}>{m.s}</div></div>))}
+            </div>
+            <div style={{marginTop:12,padding:"8px 12px",background:"rgba(255,103,25,0.03)",border:"1px solid rgba(255,103,25,0.08)",borderRadius:8}}>
+              <div style={{fontSize:10,color:"#71717A",lineHeight:1.6}}>YouTube rev ($4,195/mo) is 93.6% legacy memberships (~205 members) — no longer promoted. All new subscribers are directed to 10am.pro (Substack) where ARPU is 2x higher ($40 vs $20). Combined subscription MRR: <span style={{color:"#22C55E",fontWeight:600}}>~$7.2K/mo</span> (YT $4.2K declining + Stripe $3K growing). Biggest funnel leak: 175K shorts views → only 7,666 Substack visitors (4.4%) — CTAs missing on clips.</div>
+            </div>
+          </div>
           <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"1fr 1fr",gap:16,marginBottom:16}}>
             <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px"}}>
               <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Revenue Trajectory</div>
@@ -179,7 +200,7 @@ export default function GrowthDashboard(){
           <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"20px",marginBottom:16}}>
             <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Revenue Stack → $41.7K/mo</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(5,1fr)",gap:10}}>
-              {[{l:"YouTube AdSense",c:latestPnl.youtube||0,t:6000,color:"#FF0000",n:"Plateau ~$5-6K"},{l:"Substack+Gumroad",c:latestPnl.stripe||0,t:15000,color:"#FF6719",n:"Core lever. Scale to 10K subs."},{l:"Sponsors",c:latestPnl.sponsors||0,t:5000,color:"#D4A843",n:"Media kit + recurring deals."},{l:"10AMPRO Pro",c:0,t:15000,color:"#818CF8",n:"New product. 150@$99."},{l:"Events+AMAs",c:(latestPnl.events||0)+(latestPnl.spotify||0),t:2500,color:"#1DB954",n:"AMAs + physical + Spotify."}].map((s,i)=>{const p=Math.min((s.c/s.t)*100,100);return(<div key={i} style={{background:"rgba(255,255,255,0.015)",border:`1px solid ${s.color}15`,borderRadius:8,padding:"14px"}}><div style={{fontSize:10,color:s.color,fontWeight:600,marginBottom:8}}>{s.l}</div><div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:6}}><span style={{fontSize:18,fontWeight:700,color:"#E4E4E7",fontFamily:"'Space Grotesk'"}}>{fmt(s.c)}</span><span style={{fontSize:10,color:"#71717A"}}>/{fmt(s.t)}</span></div><div style={{height:3,background:"rgba(255,255,255,0.03)",borderRadius:2,marginBottom:8}}><div style={{height:3,borderRadius:2,background:s.color,width:`${p}%`,opacity:0.6}}/></div><div style={{fontSize:9,color:"#71717A",lineHeight:1.5}}>{s.n}</div></div>)})}
+              {[{l:"YouTube Memberships",c:latestPnl.youtube||0,t:6000,color:"#FF0000",n:"Legacy memberships, declining. Migrating to Substack."},{l:"Substack+Gumroad",c:latestPnl.stripe||0,t:15000,color:"#FF6719",n:"Core lever. Scale to 10K subs."},{l:"Sponsors",c:latestPnl.sponsors||0,t:5000,color:"#D4A843",n:"Media kit + recurring deals."},{l:"10AMPRO Pro",c:0,t:15000,color:"#818CF8",n:"New product. 150@$99."},{l:"Events+AMAs",c:(latestPnl.events||0)+(latestPnl.spotify||0),t:2500,color:"#1DB954",n:"AMAs + physical + Spotify."}].map((s,i)=>{const p=Math.min((s.c/s.t)*100,100);return(<div key={i} style={{background:"rgba(255,255,255,0.015)",border:`1px solid ${s.color}15`,borderRadius:8,padding:"14px"}}><div style={{fontSize:10,color:s.color,fontWeight:600,marginBottom:8}}>{s.l}</div><div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:6}}><span style={{fontSize:18,fontWeight:700,color:"#E4E4E7",fontFamily:"'Space Grotesk'"}}>{fmt(s.c)}</span><span style={{fontSize:10,color:"#71717A"}}>/{fmt(s.t)}</span></div><div style={{height:3,background:"rgba(255,255,255,0.03)",borderRadius:2,marginBottom:8}}><div style={{height:3,borderRadius:2,background:s.color,width:`${p}%`,opacity:0.6}}/></div><div style={{fontSize:9,color:"#71717A",lineHeight:1.5}}>{s.n}</div></div>)})}
             </div>
           </div>
           {/* Stripe ARR + Events & AMAs */}
@@ -292,7 +313,7 @@ export default function GrowthDashboard(){
               <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:mob?8:10,marginBottom:16}}>
                 <EfMetric mob={mob} label="YoY Growth" value={prevPnl&&pnlComputed[0]?"+"+((latestPnl.totalRev-pnlComputed[0].totalRev)/pnlComputed[0].totalRev*100).toFixed(0)+"%":"—"} accent="#22C55E"/>
                 <EfMetric mob={mob} label="Stripe/Substack YoY" value={pnlComputed[0]?.stripe>0?"+"+((latestPnl.stripe-pnlComputed[0].stripe)/pnlComputed[0].stripe*100).toFixed(0)+"%":"—"} sub={`$${pnlComputed[0]?.stripe||0} → ${fmt(latestPnl.stripe)}`} accent="#818CF8"/>
-                <EfMetric mob={mob} label="YouTube AdSense" value={fmt(latestPnl.youtube)} sub="Plateauing" accent="#F59E0B"/>
+                <EfMetric mob={mob} label="YouTube Memberships" value={fmt(latestPnl.youtube)} sub="~205 members" accent="#F59E0B"/>
                 <EfMetric mob={mob} label="Substack ARR" value={fmt((latestPnl.stripe||0)*12)} sub="Estimated from Stripe" accent="#22C55E"/>
               </div>
 
@@ -305,9 +326,9 @@ export default function GrowthDashboard(){
                   <div style={{fontSize:9,color:"#71717A",marginTop:2}}>Core revenue engine · Compounding</div>
                 </div>
                 <div style={{background:"rgba(239,68,68,0.03)",border:"1px solid rgba(239,68,68,0.1)",borderRadius:10,padding:mob?"14px":"18px 20px"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><div style={{width:10,height:10,borderRadius:"50%",background:"#EF4444"}}/><span style={{fontSize:12,fontWeight:600,color:"#E4E4E7"}}>YouTube AdSense</span><span style={{background:"rgba(239,68,68,0.1)",color:"#EF4444",padding:"1px 6px",borderRadius:3,fontSize:8,fontWeight:700}}>{latestPnl.totalRev>0?Math.round((latestPnl.youtube||0)/latestPnl.totalRev*100):0}%</span></div>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><div style={{width:10,height:10,borderRadius:"50%",background:"#EF4444"}}/><span style={{fontSize:12,fontWeight:600,color:"#E4E4E7"}}>YouTube Memberships</span><span style={{background:"rgba(239,68,68,0.1)",color:"#EF4444",padding:"1px 6px",borderRadius:3,fontSize:8,fontWeight:700}}>{latestPnl.totalRev>0?Math.round((latestPnl.youtube||0)/latestPnl.totalRev*100):0}%</span></div>
                   <div style={{fontSize:mob?20:24,fontWeight:800,color:"#EF4444",fontFamily:"'Space Grotesk'",marginBottom:2}}>{fmt(latestPnl.youtube)}/mo</div>
-                  <div style={{fontSize:9,color:"#71717A"}}>Plateauing</div>
+                  <div style={{fontSize:9,color:"#71717A"}}>~205 members</div>
                   <div style={{fontSize:9,color:"#F59E0B",marginTop:2}}>⚠️ Crecimiento estancado</div>
                 </div>
               </div>
@@ -412,7 +433,7 @@ export default function GrowthDashboard(){
                   {[{t:"15K subs",c:false},{t:"×"},{t:"10% conv",c:false},{t:"="},{t:"1,500 paid",c:true},{t:"×"},{t:"$8/mo",c:false},{t:"="},{t:"$12K MRR",c:true}].map((x,i)=>x.t==="×"||x.t==="="?<span key={i} style={{color:"#71717A",fontSize:14}}>{x.t}</span>:<span key={i} style={{background:x.c?"rgba(34,197,94,0.08)":"rgba(255,255,255,0.04)",border:x.c?"1px solid rgba(34,197,94,0.15)":"1px solid rgba(255,255,255,0.06)",color:x.c?"#22C55E":"#A1A1AA",padding:mob?"4px 8px":"6px 14px",borderRadius:6,fontWeight:x.c?700:400}}>{x.t}</span>)}
                 </div>
                 <EfBar label="Substack" value={12000} max={22000} color="#22C55E" suffix="/mo"/>
-                <EfBar label="YouTube AdSense" value={5000} max={22000} color="#EF4444" suffix="/mo"/>
+                <EfBar label="YouTube Memberships" value={5000} max={22000} color="#EF4444" suffix="/mo"/>
                 <EfBar label="Sponsors" value={5000} max={22000} color="#818CF8" suffix="/mo"/>
                 <div style={{marginTop:14,padding:"12px 16px",background:"rgba(34,197,94,0.04)",border:"1px solid rgba(34,197,94,0.1)",borderRadius:8,textAlign:"center"}}>
                   <span style={{fontSize:10,color:"#71717A"}}>Total proyectado: </span>

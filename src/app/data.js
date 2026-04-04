@@ -29,7 +29,7 @@ export const STRATEGY_PATHS = [
 ];
 
 export const PNL_REVENUE = [
-  { key:"youtube", label:"YouTube AdSense", color:"#FF0000" },
+  { key:"youtube", label:"YouTube Memberships", color:"#FF0000" },
   { key:"stripe", label:"Stripe (Gumroad+Sub)", color:"#FF6719" },
   { key:"sponsors", label:"Sponsor Ads", color:"#D4A843" },
   { key:"spotify", label:"Spotify", color:"#1DB954" },
