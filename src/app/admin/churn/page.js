@@ -30,27 +30,40 @@ export default function ChurnPage() {
     }
   }, []);
 
-  // Load removed checkmarks from localStorage
-  useEffect(() => {
+  // Load removed checkmarks from Supabase
+  const fetchRemoved = async (p) => {
     try {
-      const saved = localStorage.getItem("10am_churn_removed");
-      if (saved) setRemoved(JSON.parse(saved));
+      const resp = await fetch(`/api/churn-removed?pass=${encodeURIComponent(p)}`);
+      if (resp.ok) {
+        const d = await resp.json();
+        const map = {};
+        (d.removed || []).forEach((r) => { map[r.email] = r.removed_at; });
+        setRemoved(map);
+      }
     } catch {}
-  }, []);
-
-  const saveRemoved = (next) => {
-    setRemoved(next);
-    localStorage.setItem("10am_churn_removed", JSON.stringify(next));
   };
 
-  const toggleRemoved = (email) => {
+  const toggleRemoved = async (email) => {
+    const isDone = !!removed[email];
+    // Optimistic update
     const next = { ...removed };
-    if (next[email]) {
+    if (isDone) {
       delete next[email];
     } else {
       next[email] = new Date().toISOString();
     }
-    saveRemoved(next);
+    setRemoved(next);
+    // Persist to Supabase
+    try {
+      await fetch(`/api/churn-removed?pass=${encodeURIComponent(pass)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, action: isDone ? "remove" : "add", pass }),
+      });
+    } catch {
+      // Revert on failure
+      setRemoved(removed);
+    }
   };
 
   const fetchChurn = async (p) => {
@@ -73,6 +86,8 @@ export default function ChurnPage() {
       setData(d);
       setUnlocked(true);
       sessionStorage.setItem(PASS_KEY, p);
+      // Load removed state from Supabase
+      await fetchRemoved(p);
     } catch (e) {
       setError("Network error");
     } finally {
