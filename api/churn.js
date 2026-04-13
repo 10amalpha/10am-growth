@@ -37,7 +37,10 @@ export default async function handler(req, res) {
       const resp = await fetch(
         `https://api.stripe.com/v1/subscriptions?${params.toString()}`,
         {
-          headers: { Authorization: `Bearer ${STRIPE_KEY}` },
+          headers: {
+            Authorization: `Bearer ${STRIPE_KEY}`,
+            "Stripe-Version": "2023-10-16",
+          },
         }
       );
       if (!resp.ok) {
@@ -70,7 +73,10 @@ export default async function handler(req, res) {
       const resp = await fetch(
         `https://api.stripe.com/v1/subscriptions?${params.toString()}`,
         {
-          headers: { Authorization: `Bearer ${STRIPE_KEY}` },
+          headers: {
+            Authorization: `Bearer ${STRIPE_KEY}`,
+            "Stripe-Version": "2023-10-16",
+          },
         }
       );
       if (!resp.ok) {
@@ -103,7 +109,10 @@ export default async function handler(req, res) {
       const resp = await fetch(
         `https://api.stripe.com/v1/subscriptions?${params.toString()}`,
         {
-          headers: { Authorization: `Bearer ${STRIPE_KEY}` },
+          headers: {
+            Authorization: `Bearer ${STRIPE_KEY}`,
+            "Stripe-Version": "2023-10-16",
+          },
         }
       );
       if (!resp.ok) break;
