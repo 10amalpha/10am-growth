@@ -106,6 +106,7 @@ export default function ChurnPage() {
 
   const TABS = [
     { key: "remove", label: "REMOVE", count: data?.summary?.toRemove },
+    { key: "active", label: "STILL ACTIVE", count: data?.summary?.stillActive },
     { key: "recent", label: "RECENT", count: data?.summary?.recentCancels },
     { key: "past_due", label: "PAST DUE", count: data?.pastDue?.length },
     { key: "resubbed", label: "RE-SUBBED", count: data?.summary?.resubbed },
@@ -115,6 +116,7 @@ export default function ChurnPage() {
     if (!data) return [];
     let list = [];
     if (tab === "remove") list = data.toRemove || [];
+    else if (tab === "active") list = data.stillActive || [];
     else if (tab === "recent") list = data.recentCancels || [];
     else if (tab === "past_due") list = data.pastDue || [];
     else if (tab === "resubbed") list = data.resubbed || [];
@@ -266,6 +268,7 @@ export default function ChurnPage() {
       const colors = {
         canceled: { bg: "rgba(239,68,68,0.1)", color: "#EF4444" },
         past_due: { bg: "rgba(245,158,11,0.1)", color: "#F59E0B" },
+        annual: { bg: "rgba(212,168,67,0.1)", color: "#D4A843" },
       };
       const c = colors[status] || colors.canceled;
       return {
@@ -403,7 +406,7 @@ export default function ChurnPage() {
             display: "grid",
             gridTemplateColumns: isMobile
               ? "repeat(2, 1fr)"
-              : "repeat(4, 1fr)",
+              : "repeat(5, 1fr)",
             gap: 12,
             marginBottom: 24,
           }}
@@ -413,6 +416,11 @@ export default function ChurnPage() {
               label: "TO REMOVE",
               value: data.summary.toRemove,
               color: "#EF4444",
+            },
+            {
+              label: "STILL ACTIVE",
+              value: data.summary.stillActive || 0,
+              color: "#D4A843",
             },
             {
               label: "RECENT CANCELS",
@@ -511,9 +519,9 @@ export default function ChurnPage() {
                   {tab === "remove" && <th style={s.th}>✓</th>}
                   <th style={s.th}>Email</th>
                   {!isMobile && <th style={s.th}>Name</th>}
-                  <th style={s.th}>Status</th>
+                  <th style={s.th}>Plan</th>
                   <th style={s.th}>Canceled</th>
-                  <th style={s.th}>Days</th>
+                  <th style={s.th}>{tab === "active" ? "Expires" : "Days"}</th>
                   {!isMobile && <th style={s.th}>Amount</th>}
                 </tr>
               </thead>
@@ -587,10 +595,12 @@ export default function ChurnPage() {
                         </td>
                       )}
                       <td style={s.td}>
-                        <span style={s.statusPill(sub.status)}>
-                          {sub.status === "past_due"
+                        <span style={s.statusPill(sub.isAnnual ? "annual" : sub.status)}>
+                          {sub.isAnnual
+                            ? "ANNUAL"
+                            : sub.status === "past_due"
                             ? "PAST DUE"
-                            : "CANCELED"}
+                            : "MONTHLY"}
                         </span>
                       </td>
                       <td style={{ ...s.td, ...s.dim }}>
@@ -601,12 +611,18 @@ export default function ChurnPage() {
                           ...s.td,
                           fontWeight: 700,
                           color:
-                            sub.daysSinceCancel >= 30
+                            sub.isAnnual && !sub.accessExpired
+                              ? "#D4A843"
+                              : sub.accessExpired
                               ? "#EF4444"
                               : "#F59E0B",
                         }}
                       >
-                        {sub.daysSinceCancel ?? "—"}d
+                        {sub.isAnnual && sub.daysUntilExpiry != null
+                          ? sub.daysUntilExpiry > 0
+                            ? `${sub.daysUntilExpiry}d left`
+                            : "expired"
+                          : `${sub.daysSinceCancel ?? "—"}d ago`}
                       </td>
                       {!isMobile && (
                         <td style={{ ...s.td, ...s.dim }}>

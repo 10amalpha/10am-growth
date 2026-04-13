@@ -160,6 +160,22 @@ export default async function handler(req, res) {
         : "0";
       const currency = sub.currency || "usd";
       const resubbed = activeEmails.has(email.toLowerCase());
+      const amountNum = parseFloat(amount);
+
+      // Annual plan ($400/yr): access lasts until current_period_end
+      // Stripe sets current_period_end to when the prepaid period expires
+      const isAnnual = amountNum >= 300; // $400/yr or similar annual plans
+      const periodEnd = sub.current_period_end
+        ? new Date(sub.current_period_end * 1000)
+        : null;
+      const accessExpired = isAnnual
+        ? periodEnd
+          ? periodEnd.getTime() < now
+          : daysSinceCancel !== null && daysSinceCancel >= 365
+        : daysSinceCancel !== null && daysSinceCancel >= 30;
+      const daysUntilExpiry = isAnnual && periodEnd
+        ? Math.ceil((periodEnd.getTime() - now) / (1000 * 60 * 60 * 24))
+        : null;
 
       return {
         email,
@@ -167,8 +183,11 @@ export default async function handler(req, res) {
         status,
         canceledAt: canceledAt ? canceledAt.toISOString() : null,
         daysSinceCancel,
-        over30Days: daysSinceCancel !== null && daysSinceCancel >= 30,
-        amount: parseFloat(amount),
+        accessExpired,
+        isAnnual,
+        periodEnd: periodEnd ? periodEnd.toISOString() : null,
+        daysUntilExpiry,
+        amount: amountNum,
         currency,
         productName,
         resubbed,
@@ -183,10 +202,11 @@ export default async function handler(req, res) {
     );
 
     // Summary
-    const toRemove = all.filter((s) => s.over30Days && !s.resubbed);
+    const toRemove = all.filter((s) => s.accessExpired && !s.resubbed);
+    const stillActive = all.filter((s) => !s.accessExpired && !s.resubbed && s.isAnnual);
     const resubbed = all.filter((s) => s.resubbed);
     const recentCancels = all.filter(
-      (s) => !s.over30Days && !s.resubbed && s.status === "canceled"
+      (s) => !s.accessExpired && !s.resubbed && !s.isAnnual && s.status === "canceled"
     );
 
     return res.status(200).json({
@@ -195,10 +215,12 @@ export default async function handler(req, res) {
         totalCanceled: canceled.length,
         totalPastDue: pastDue.length,
         toRemove: toRemove.length,
+        stillActive: stillActive.length,
         resubbed: resubbed.length,
         recentCancels: recentCancels.length,
       },
       toRemove,
+      stillActive,
       recentCancels,
       pastDue: pastDue.filter((s) => !s.resubbed),
       resubbed,
