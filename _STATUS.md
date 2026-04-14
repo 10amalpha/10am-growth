@@ -100,7 +100,7 @@ All data hardcoded from Substack CSV. Source categorization: YouTube/TikTok/Inst
 
 ---
 
-## Current State (April 3, 2026)
+## Current State (April 13, 2026)
 
 ### Followers: 145,518 total
 
@@ -135,6 +135,69 @@ Cohort retention (monthly subs only): Jan M3 67% | Feb M2 88% | Mar M1 100%
 ### Luma Events: 4 active, 293 registrations
 
 Alpha 63 (76, $15) | Alpha 64 (24, $15) | Ep200 Fireside (163, $40) | Almuerzo (30, SOLD OUT)
+
+---
+
+## Churn Control System (added April 13, 2026)
+
+### Overview
+
+Automated subscriber cleanup tool for the 10am Alpha WhatsApp chat. Live at:
+- **Dashboard:** https://growth.10am.pro/admin/churn (password: `elgordo`)
+- **API:** `/api/churn` — Stripe subscriber status (password-gated)
+- **Removed tracking:** `/api/churn-removed` — Supabase persistence for checked-off members
+- **Daily cron:** `/api/cron/churn-notify` — email alerts for newly expired subs
+
+### How it works
+
+1. Fetches all canceled + past_due subscriptions from Stripe API (pinned to version `2023-10-16`)
+2. Cross-references active subscriptions to detect re-subscribers
+3. **Monthly plans ($40/mo):** access expires 30 days after cancellation → moves to "TO REMOVE"
+4. **Annual plans ($400/yr):** access expires at Stripe `current_period_end` (full year honored) → "STILL ACTIVE" until then
+5. Checked-off members saved to Supabase `churn_removed` table (persists across devices)
+
+### Dashboard tabs
+
+| Tab | What | Color |
+|---|---|---|
+| REMOVE | Canceled 30+ days (monthly) or period expired (annual), not re-subbed | Red |
+| STILL ACTIVE | Annual subs within prepaid period, shows "Xd left" countdown | Gold |
+| RECENT | Canceled < 30 days, grace period | Yellow |
+| PAST DUE | Payment failed, sub still technically active | Orange |
+| RE-SUBBED | Canceled then came back — safe, leave in chat | Green |
+
+### Email notifications (Vercel Cron)
+
+- **Schedule:** Daily at 8:00 AM COT (13:00 UTC) — `vercel.json` cron: `"0 13 * * *"`
+- **Recipients:** hernanjaramillo@gmail.com + info@10am.pro
+- **Triggers ONLY when:** a monthly sub hits 30-day mark OR an annual sub's period_end passes OR an annual sub expires within 7 days
+- **Silent on quiet days** — no email sent if nothing to report
+- **Email service:** Resend (free tier, 100/day)
+- **Manual test:** `growth.10am.pro/api/cron/churn-notify?pass=elgordo`
+
+### Environment variables (Vercel: 10am-growth)
+
+| Key | Purpose |
+|---|---|
+| `STRIPE_SECRET_KEY` | Stripe API (server-side only, never client-exposed) |
+| `RESEND_API_KEY` | Email notifications via Resend |
+| `CRON_SECRET` | Vercel cron auth (optional, falls back to admin pass) |
+
+### Supabase table: `churn_removed`
+
+- **Columns:** `email` (PK), `removed_at` (timestamptz), `removed_by` (text)
+- **RLS:** Open for all (policy: `USING (true) WITH CHECK (true)`)
+- **Purpose:** Persist checkbox state so removed members don't reappear as pending
+
+### Files added
+
+| File | Purpose |
+|---|---|
+| `api/churn.js` | Stripe subscriber status API (all tabs data) |
+| `api/churn-removed.js` | Supabase read/write for removed checkmarks |
+| `api/cron/churn-notify.js` | Daily email notification cron job |
+| `src/app/admin/churn/page.js` | Frontend dashboard (password-gated) |
+| `vercel.json` | Cron schedule config |
 
 ---
 
