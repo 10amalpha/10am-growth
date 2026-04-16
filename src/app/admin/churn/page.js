@@ -21,12 +21,13 @@ export default function ChurnPage() {
     return () => window.removeEventListener("resize", c);
   }, []);
 
-  // Persist pass in sessionStorage
+  // Persist pass in sessionStorage and auto-fetch on mount
   useEffect(() => {
     const saved = sessionStorage.getItem(PASS_KEY);
     if (saved) {
       setPass(saved);
       setUnlocked(true);
+      fetchChurn(saved);
     }
   }, []);
 
@@ -99,10 +100,6 @@ export default function ChurnPage() {
     e.preventDefault();
     fetchChurn(pass);
   };
-
-  useEffect(() => {
-    if (unlocked && pass) fetchChurn(pass);
-  }, []);
 
   const TABS = [
     { key: "remove", label: "REMOVE", count: data?.summary?.toRemove },
@@ -398,6 +395,14 @@ export default function ChurnPage() {
           </button>
         </div>
       </div>
+
+      {/* Loading state */}
+      {!data && loading && (
+        <div style={{ ...s.card, textAlign: "center", padding: 60, marginTop: 24 }}>
+          <div style={{ fontSize: 14, color: "#22C55E", marginBottom: 8 }}>Loading Stripe data...</div>
+          <div style={{ fontSize: 11, color: "#71717A" }}>Fetching subscriptions</div>
+        </div>
+      )}
 
       {/* Summary Cards */}
       {data && (
