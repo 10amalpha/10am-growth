@@ -69,10 +69,10 @@ export default function IgBoostTab() {
   const [submitting, setSubmitting] = useState({});
   const [feedback, setFeedback] = useState({});
 
-  // Load everything in parallel
+  // Load everything in parallel — ig-boost-live is ~30 sec
   useEffect(() => {
     Promise.all([
-      fetch("/api/ig-boost-recommendations").then(r => r.json()).catch(e => ({ error: e.message })),
+      fetch("/api/ig-boost-live").then(r => r.json()).catch(e => ({ error: e.message })),
       fetch("/api/substack-posts").then(r => r.json()).catch(e => ({ error: e.message })),
       fetch("/api/ig-boost-tracking").then(r => r.json()).catch(e => ({ error: e.message })),
     ]).then(([r, p, t]) => {
@@ -154,7 +154,12 @@ export default function IgBoostTab() {
   if (loading) {
     return (
       <div style={{ padding: 40, textAlign: "center", color: "#71717A", fontSize: 13 }}>
-        Cargando recomendaciones...
+        <div style={{ fontSize: 24, marginBottom: 12 }}>⏳</div>
+        <div style={{ fontWeight: 600, color: "#E4E4E7", marginBottom: 6 }}>Consultando Instagram en vivo...</div>
+        <div style={{ fontSize: 11, color: "#71717A" }}>
+          Fetcheando reels, insights (views, follows, saves, profile visits) y scoreando candidatos.<br/>
+          Esto toma ~30 segundos. Los datos son siempre frescos, no hay cache.
+        </div>
       </div>
     );
   }
@@ -162,16 +167,13 @@ export default function IgBoostTab() {
   if (err || !recs.length) {
     return (
       <div style={{ padding: 30, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 12 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: "#E4E4E7", marginBottom: 10 }}>Sin recomendaciones todavía</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: "#E4E4E7", marginBottom: 10 }}>Sin recomendaciones</div>
         <div style={{ fontSize: 12, color: "#A1A1AA", lineHeight: 1.6 }}>
-          El cron se ejecuta diariamente a las 8 AM UTC. Para disparar manualmente la primera vez:
-          <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(34,197,94,0.15)", borderRadius: 6, padding: "10px 14px", marginTop: 10, fontFamily: "'JetBrains Mono'", fontSize: 11, color: "#22C55E" }}>
-            GET /api/cron/compute-ig-boost?pass=elgordo
-          </div>
-          {err && <div style={{ marginTop: 10, fontSize: 11, color: "#EF4444" }}>Error: {err}</div>}
-          <div style={{ marginTop: 12, fontSize: 11, color: "#71717A" }}>
-            Asegurate de haber corrido el SQL de <code style={{ color: "#D4A843" }}>supabase-ig-boost-schema.sql</code> en Supabase SQL Editor.
-          </div>
+          {err ? (
+            <>Error al consultar Instagram API: <span style={{ color: "#EF4444" }}>{err}</span></>
+          ) : (
+            <>No se encontraron clips con métricas válidas en las últimas 4 semanas. Podés verificar la respuesta cruda en <a href="/api/ig-boost-live" target="_blank" style={{ color: "#22C55E" }}>/api/ig-boost-live</a>.</>
+          )}
         </div>
       </div>
     );
