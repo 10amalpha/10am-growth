@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { supabase } from "./supabase";
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, ComposedChart, Cell, BarChart } from "recharts";
 import { CH_META, STREAMS, STRATEGY_PATHS, PNL_REVENUE, PNL_EXPENSES, PNL_DATA, fmt, fmtK, fmtMonth, fmtMonthFull } from "./data";
+import IgBoostTab from "./IgBoostTab";
 
 const pct=(a,b)=>b?((a-b)/b*100).toFixed(1):"—";
 const useIsMobile=()=>{const[m,setM]=useState(false);useEffect(()=>{const c=()=>setM(window.innerWidth<768);c();window.addEventListener("resize",c);return()=>window.removeEventListener("resize",c)},[]);return m;};
@@ -104,7 +105,7 @@ export default function GrowthDashboard(){
   const monthsToTarget=avgGrowth>0?Math.ceil(monthlyGap/avgGrowth):Infinity;
 
   const iS={background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"8px 10px",color:"#E4E4E7",fontSize:13,fontFamily:"'JetBrains Mono',monospace",width:"100%",outline:"none"};
-  const TABS=[{key:"tracker",label:"🏁 $500K"},{key:"strategy",label:"🎯 Strategy"},{key:"conversion",label:"🔄 Conversion"},{key:"financials",label:"💵 Financials"},{key:"audience",label:"📈 Audience"},{key:"admin",label:"⚙️ Admin"}];
+  const TABS=[{key:"tracker",label:"🏁 $500K"},{key:"strategy",label:"🎯 Strategy"},{key:"conversion",label:"🔄 Conversion"},{key:"igboost",label:"🚀 IG Boost"},{key:"financials",label:"💵 Financials"},{key:"audience",label:"📈 Audience"},{key:"admin",label:"⚙️ Admin"}];
   const[efSection,setEfSection]=useState("overview");
   const[epSort,setEpSort]=useState("net");
   const[epView,setEpView]=useState("matrix");
@@ -1077,6 +1078,9 @@ export default function GrowthDashboard(){
             </div>}
           </div>);
         })()}
+
+        {/* 🚀 IG BOOST */}
+        {view==="igboost"&&<IgBoostTab/>}
 
         {/* ⚙️ ADMIN */}
         {view==="admin"&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.04)",borderRadius:12,padding:"24px"}}>
