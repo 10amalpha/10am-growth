@@ -3,7 +3,7 @@
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=7200");
+  res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=120");
 
   try {
     const rssResp = await fetch("https://10am.pro/feed", {

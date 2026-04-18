@@ -111,38 +111,40 @@ export default function IgBoostTab() {
   const [submitting, setSubmitting] = useState({});
   const [feedback, setFeedback] = useState({});
 
-  // Load everything in parallel — ig-boost-live is ~30 sec
-  useEffect(() => {
-    Promise.all([
+  // Reusable fetch — called on mount AND from refresh button
+  const loadAll = async () => {
+    setLoading(true);
+    setErr(null);
+    const [r, p, t] = await Promise.all([
       fetch("/api/ig-boost-live").then(r => r.json()).catch(e => ({ error: e.message })),
       fetch("/api/substack-posts").then(r => r.json()).catch(e => ({ error: e.message })),
       fetch("/api/ig-boost-tracking").then(r => r.json()).catch(e => ({ error: e.message })),
-    ]).then(([r, p, t]) => {
-      if (r.error) setErr(r.error);
-      setRecs(r.recommendations || []);
-      setComputedAt(r.computed_at);
-      const combined = [...(p.specials || []), ...(p.posts || [])];
-      setPosts(combined);
-      setTracking(t.tracking || []);
-      
-      // Initialize form state — pre-select best topical match per clip (not homepage)
-      const initial = {};
-      (r.recommendations || []).forEach(c => {
-        const sorted = sortPostsForClip(c.caption, combined);
-        // Best match = first non-special post with score > 0, else subscribe page
-        const bestMatch = sorted.find(p => !p._isSpecial && p._score > 0);
-        const defaultLanding = bestMatch ? bestMatch.url : "https://10am.pro/subscribe";
-        initial[c.media_id] = {
-          landing: defaultLanding,
-          budget: suggestBudget(c.views),
-          campaign: `${slugFromCaption(c.caption)}_${monthTag()}`,
-          days: 7,
-        };
-      });
-      setForms(initial);
-      setLoading(false);
+    ]);
+    if (r.error) setErr(r.error);
+    setRecs(r.recommendations || []);
+    setComputedAt(r.computed_at);
+    const combined = [...(p.specials || []), ...(p.posts || [])];
+    setPosts(combined);
+    setTracking(t.tracking || []);
+    
+    // Initialize form state — pre-select best topical match per clip (not homepage)
+    const initial = {};
+    (r.recommendations || []).forEach(c => {
+      const sorted = sortPostsForClip(c.caption, combined);
+      const bestMatch = sorted.find(p => !p._isSpecial && p._score > 0);
+      const defaultLanding = bestMatch ? bestMatch.url : "https://10am.pro/subscribe";
+      initial[c.media_id] = {
+        landing: defaultLanding,
+        budget: suggestBudget(c.views),
+        campaign: `${slugFromCaption(c.caption)}_${monthTag()}`,
+        days: 7,
+      };
     });
-  }, []);
+    setForms(initial);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadAll(); }, []);
 
   const updateForm = (mediaId, field, value) => {
     setForms(prev => ({ ...prev, [mediaId]: { ...prev[mediaId], [field]: value } }));
@@ -242,8 +244,24 @@ export default function IgBoostTab() {
             </div>
           </div>
           {computedAt && (
-            <div style={{ fontSize: 10, color: "#52525B", fontFamily: "'JetBrains Mono'" }}>
-              Calculado: {fmtDateTime(computedAt)}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ fontSize: 10, color: "#52525B", fontFamily: "'JetBrains Mono'" }}>
+                Live fetch: {fmtDateTime(computedAt)}
+              </div>
+              <button
+                onClick={loadAll}
+                disabled={loading}
+                title="Re-fetch en vivo desde Meta + Substack RSS"
+                style={{
+                  background: loading ? "rgba(255,255,255,0.02)" : "rgba(34,197,94,0.08)",
+                  border: "1px solid rgba(34,197,94,0.2)",
+                  color: "#22C55E", padding: "4px 10px", borderRadius: 6,
+                  fontSize: 10, cursor: loading ? "default" : "pointer",
+                  fontFamily: "inherit", fontWeight: 600,
+                }}
+              >
+                {loading ? "..." : "🔄 Refetch"}
+              </button>
             </div>
           )}
         </div>
