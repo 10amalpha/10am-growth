@@ -201,6 +201,70 @@ Automated subscriber cleanup tool for the 10am Alpha WhatsApp chat. Live at:
 
 ---
 
+## 🚀 IG Boost Feature (Apr 18, 2026)
+
+**Goal:** Automate recommendation of which IG Reels to boost for email conversion, replacing manual CSV analysis.
+
+### Architecture
+
+| Piece | Purpose |
+|---|---|
+| `api/cron/compute-ig-boost.js` | Daily 8 AM UTC. Pulls last 28d of IG Reels via Graph API v22.0, filters ≤60s (Boost eligibility), scores by conversion signals, upserts top 10 to Supabase |
+| `api/ig-boost-recommendations.js` | GET latest snapshot from Supabase |
+| `api/substack-posts.js` | GET last 50 posts from `10am.pro/feed` RSS — populates landing dropdown |
+| `api/ig-boost-tracking.js` | POST saves boost decisions, GET returns history |
+| `src/app/IgBoostTab.jsx` | Frontend: Top 3 cards + candidates table + history |
+| `supabase-ig-boost-schema.sql` | Schema for `ig_boost_recommendations` and `ig_boost_tracking` tables |
+
+### Scoring Formula (v1)
+
+```
+score = (follows_per_1k × 3) + (saves_per_1k × 2) + (profile_visits_per_1k × 1.5) + (engagement_rate × 10)
+```
+
+- **Follows/1K**: strongest signal — follow means user navigated to profile (one tap from bio link)
+- **Saves/1K**: depth signal — user wants to reference the content again
+- **Profile visits/1K**: bio-link proximity
+- **ER (likes+comments+shares+saves / views × 100)**: Meta's paid-delivery multiplier
+
+**Filters applied:**
+- Duration ≤60s (hard IG Boost limit — 60s+ requires Ads Manager)
+- Published within last 28 days
+- Views ≤ 3× median of eligible clips (excludes already-burned-out virals)
+
+### First-time setup (ONE TIME)
+
+1. **Run SQL** in Supabase SQL Editor: `supabase-ig-boost-schema.sql`
+2. **Verify Vercel env vars** for `10am-growth` project:
+   - `IG_ACCESS_TOKEN` — same token as shorts-analytics (expires ~May 11, 2026)
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (already set)
+   - `CRON_SECRET` — optional, for Vercel cron auth
+3. **Trigger cron manually** to populate first batch:
+   ```
+   GET https://growth.10am.pro/api/cron/compute-ig-boost?pass=elgordo
+   ```
+4. Open **https://growth.10am.pro** → 🚀 IG Boost tab
+
+### Workflow (ongoing)
+
+1. Cron runs daily at 8 AM UTC → writes top 10 recommendations to Supabase
+2. Hernán opens IG Boost tab → sees Top 3 with scoring reasoning
+3. Picks landing from Substack dropdown, sets budget + days, edits UTM campaign slug
+4. Clicks "Marcar como boosteado" → row saved to `ig_boost_tracking`
+5. Copies the UTM-appended URL and pastes into IG's native Boost flow
+6. Monthly: cross-reference `utm_campaign` values with Substack sources CSV to fill `emails_attributed` field manually
+7. Over time: cost/email per campaign becomes the feedback loop to tune scoring weights
+
+### Future improvements
+
+- Auto-match Substack post to clip via Claude API (currently manual dropdown — decided Apr 18 for MVP speed)
+- Add TikTok scoring when API access exists (same scoring model, different eligibility rules)
+- Add YouTube Shorts scoring via YT Data API
+- Auto-fill `emails_attributed` by parsing Substack sources CSV upload
+- A/B test different UTM landing structures
+
+---
+
 ## API Keys & Credentials
 
 | Service | Key/ID |
