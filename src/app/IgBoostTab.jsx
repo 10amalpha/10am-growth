@@ -54,6 +54,48 @@ const useIsMobile = () => {
   return m;
 };
 
+// Topical matching — scores how well a post title matches a clip caption
+const STOPWORDS = new Set(["para","con","por","del","los","las","una","uno","esta","este","pero","como","sin","hay","son","hace","que","todo","todos","toda","todas","muy","mas","sus","soy","nos","les","cual","dos","tres","nuestro","nuestra","sobre","entre","antes","despues","tambien","cuando","donde","porque","desde","hasta","cada","mientras","quien","cuanto","cuantos","cuantas","aqui","alli","ahora","sera","seran","fueron","estos","estas","aunque","mismo","misma","otros","otras","algunos","algunas","gran","grandes","nuevo","nueva","mayor","menor","puede","pueden","debe","debemos","hacer","hacia","segun","salvo","excepto","oeste","norte","este","sur","casi","solo","solos","siempre","nunca","jamas","ultimo","ultima"]);
+
+const getSignalWords = (text) => {
+  return (text || "").toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(w => w.length >= 4 && !STOPWORDS.has(w));
+};
+
+const topicalScore = (clipCaption, postTitle) => {
+  const captionWords = new Set(getSignalWords(clipCaption));
+  if (captionWords.size === 0) return 0;
+  const titleWords = getSignalWords(postTitle);
+  let matches = 0;
+  for (const w of titleWords) {
+    if (captionWords.has(w)) matches++;
+  }
+  return matches;
+};
+
+// Given a clip + all posts, returns posts sorted by topical relevance (specials pinned at top)
+const sortPostsForClip = (clipCaption, posts) => {
+  return posts
+    .map(p => {
+      const isSpecial = p.url === "https://10am.pro" || p.url === "https://10am.pro/subscribe";
+      return { ...p, _score: isSpecial ? null : topicalScore(clipCaption, p.title), _isSpecial: isSpecial };
+    })
+    .sort((a, b) => {
+      // Specials pinned to top in their original order (subscribe before homepage)
+      if (a._isSpecial && !b._isSpecial) return -1;
+      if (!a._isSpecial && b._isSpecial) return 1;
+      if (a._isSpecial && b._isSpecial) return 0;
+      // Non-specials: by topical score desc, then by recency
+      if (b._score !== a._score) return b._score - a._score;
+      const aDate = a.published_at ? new Date(a.published_at).getTime() : 0;
+      const bDate = b.published_at ? new Date(b.published_at).getTime() : 0;
+      return bDate - aDate;
+    });
+};
+
 // ── component ──
 export default function IgBoostTab() {
   const mob = useIsMobile();
@@ -83,11 +125,15 @@ export default function IgBoostTab() {
       setPosts(combined);
       setTracking(t.tracking || []);
       
-      // Initialize form state
+      // Initialize form state — pre-select best topical match per clip (not homepage)
       const initial = {};
       (r.recommendations || []).forEach(c => {
+        const sorted = sortPostsForClip(c.caption, combined);
+        // Best match = first non-special post with score > 0, else subscribe page
+        const bestMatch = sorted.find(p => !p._isSpecial && p._score > 0);
+        const defaultLanding = bestMatch ? bestMatch.url : "https://10am.pro/subscribe";
         initial[c.media_id] = {
-          landing: "https://10am.pro",
+          landing: defaultLanding,
           budget: suggestBudget(c.views),
           campaign: `${slugFromCaption(c.caption)}_${monthTag()}`,
           days: 7,
@@ -283,11 +329,34 @@ export default function IgBoostTab() {
               <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "2fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
                 <div>
                   <label style={labelStyle}>Landing</label>
-                  <select value={f.landing} onChange={e => updateForm(clip.media_id, "landing", e.target.value)} style={inputStyle}>
-                    {posts.map((p, i) => (
-                      <option key={i} value={p.url}>{p.title.length > 60 ? p.title.slice(0, 60) + "…" : p.title}</option>
-                    ))}
-                  </select>
+                  {(() => {
+                    const sortedPosts = sortPostsForClip(clip.caption, posts);
+                    const topMatch = sortedPosts.find(p => !p._isSpecial && p._score > 0);
+                    const selectedPost = sortedPosts.find(p => p.url === f.landing);
+                    const isHomepage = f.landing === "https://10am.pro";
+                    return (
+                      <>
+                        <select value={f.landing} onChange={e => updateForm(clip.media_id, "landing", e.target.value)} style={{ ...inputStyle, borderColor: isHomepage ? "rgba(239,68,68,0.3)" : inputStyle.border }}>
+                          {sortedPosts.map((p, i) => {
+                            const prefix = p._isSpecial ? "" : (topMatch && p.url === topMatch.url ? "🎯 " : p._score > 0 ? "· " : "  ");
+                            const suffix = !p._isSpecial && p._score > 0 ? ` (${p._score} match${p._score > 1 ? "es" : ""})` : "";
+                            const label = `${prefix}${p.title}${suffix}`;
+                            return <option key={i} value={p.url}>{label.length > 80 ? label.slice(0, 80) + "…" : label}</option>;
+                          })}
+                        </select>
+                        {isHomepage && (
+                          <div style={{ fontSize: 9, color: "#EF4444", marginTop: 4, lineHeight: 1.4 }}>
+                            ⚠️ Homepage convierte a 1.3% (6x peor que post específico). Preferí un post del tema.
+                          </div>
+                        )}
+                        {!isHomepage && topMatch && selectedPost && !selectedPost._isSpecial && selectedPost.url !== topMatch.url && (
+                          <div style={{ fontSize: 9, color: "#D4A843", marginTop: 4, lineHeight: 1.4 }}>
+                            💡 Mejor match topical: "{topMatch.title.slice(0, 50)}{topMatch.title.length > 50 ? "…" : ""}"
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
                 <div>
                   <label style={labelStyle}>Presupuesto USD</label>

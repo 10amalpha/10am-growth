@@ -39,10 +39,10 @@ export default async function handler(req, res) {
       }
     }
 
-    // Add special option for homepage + subscribe page
+    // Add special options — subscribe page first (best fallback), homepage last (worst converter)
     const specials = [
-      { title: "— Homepage (10am.pro)", url: "https://10am.pro", published_at: null, description: "Landing genérica" },
-      { title: "— Subscribe (10am.pro/subscribe)", url: "https://10am.pro/subscribe", published_at: null, description: "Página de suscripción directa" },
+      { title: "⭐ Subscribe (10am.pro/subscribe)", url: "https://10am.pro/subscribe", published_at: null, description: "Best fallback — un solo CTA de email capture" },
+      { title: "⚠️ Homepage (10am.pro) — 1.3% conv, usar solo como último recurso", url: "https://10am.pro", published_at: null, description: "Landing genérica. Conversión histórica baja." },
     ];
 
     return res.status(200).json({
