@@ -48,14 +48,21 @@ export default async function handler(req, res) {
     });
 
     // 4. For each reel, fetch insights + duration
+    const debugMode = req.query.debug === "1";
+    const debugInfo = [];
     const clips = [];
     for (const reel of reels) {
       try {
-        // Duration via separate fields call
-        const durUrl = `https://graph.facebook.com/v22.0/${reel.id}?fields=video_duration&access_token=${pageToken}`;
+        // Try multiple possible duration fields (Meta API inconsistency)
+        const durUrl = `https://graph.facebook.com/v22.0/${reel.id}?fields=video_duration,media_type,media_product_type&access_token=${pageToken}`;
         const durResp = await fetch(durUrl);
         const durData = durResp.ok ? await durResp.json() : {};
-        const duration = durData.video_duration ? Number(durData.video_duration) : null;
+        let duration = null;
+        if (durData.video_duration) duration = Number(durData.video_duration);
+        
+        if (debugMode && debugInfo.length < 3) {
+          debugInfo.push({ reel_id: reel.id, durResp_status: durResp.status, durData });
+        }
 
         // Insights: views, reach, shares, saves, follows, profile_visits
         const metrics = ["views", "reach", "shares", "saved", "follows", "profile_visits"];
@@ -114,8 +121,8 @@ export default async function handler(req, res) {
         (profile_visits_per_1k * 1.5) +
         (engagement_rate * 10);
 
-      // Eligibility: ≤60s (IG Boost hard limit)
-      const boost_eligible = c.duration_sec !== null && c.duration_sec <= 60;
+      // Eligibility: ≤60s OR unknown (IG Boost hard limit — if API didn't return duration, include it and let user verify visually)
+      const boost_eligible = c.duration_sec === null || c.duration_sec <= 60;
 
       return { ...c, follows_per_1k, saves_per_1k, profile_visits_per_1k, engagement_rate, score, boost_eligible };
     });
@@ -215,6 +222,7 @@ export default async function handler(req, res) {
         score: c.score.toFixed(1),
         reasoning: c.reasoning,
       })),
+      ...(debugMode && { debug: debugInfo }),
     });
   } catch (e) {
     console.error("Cron error:", e);
