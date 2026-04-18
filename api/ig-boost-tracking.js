@@ -7,7 +7,7 @@ const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIU
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
 
@@ -42,6 +42,17 @@ export default async function handler(req, res) {
         duration_days: body.duration_days ? Number(body.duration_days) : null,
         status: body.status || "active",
         notes: body.notes || null,
+        // Baseline metrics at boost time
+        baseline_views: body.baseline_views ?? null,
+        baseline_reach: body.baseline_reach ?? null,
+        baseline_likes: body.baseline_likes ?? null,
+        baseline_comments: body.baseline_comments ?? null,
+        baseline_shares: body.baseline_shares ?? null,
+        baseline_saves: body.baseline_saves ?? null,
+        baseline_follows: body.baseline_follows ?? null,
+        baseline_profile_visits: body.baseline_profile_visits ?? null,
+        baseline_engagement_rate: body.baseline_engagement_rate ?? null,
+        baseline_follows_per_1k: body.baseline_follows_per_1k ?? null,
       };
 
       const resp = await fetch(`${SUPABASE_URL}/rest/v1/ig_boost_tracking`, {
@@ -62,6 +73,42 @@ export default async function handler(req, res) {
 
       const inserted = await resp.json();
       return res.status(200).json({ ok: true, inserted: inserted[0] || inserted });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  if (req.method === "PATCH") {
+    try {
+      const body = req.body;
+      if (!body?.id) return res.status(400).json({ error: "Missing id" });
+      
+      // Whitelist editable fields
+      const allowed = ["emails_attributed", "paid_subs_attributed", "mrr_attributed", "status", "notes", "budget_usd", "duration_days", "completed_at"];
+      const updates = {};
+      for (const key of allowed) {
+        if (body[key] !== undefined) updates[key] = body[key];
+      }
+      if (Object.keys(updates).length === 0) return res.status(400).json({ error: "No fields to update" });
+
+      const resp = await fetch(`${SUPABASE_URL}/rest/v1/ig_boost_tracking?id=eq.${body.id}`, {
+        method: "PATCH",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=representation",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        return res.status(500).json({ error: "Update failed", detail: errText });
+      }
+
+      const updated = await resp.json();
+      return res.status(200).json({ ok: true, updated: updated[0] || updated });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }

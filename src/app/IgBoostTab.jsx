@@ -110,6 +110,41 @@ export default function IgBoostTab() {
   const [forms, setForms] = useState({});
   const [submitting, setSubmitting] = useState({});
   const [feedback, setFeedback] = useState({});
+  
+  // Tracking — current live metrics for each boosted media (keyed by media_id)
+  const [liveMetrics, setLiveMetrics] = useState({});
+  const [editingCell, setEditingCell] = useState(null); // { id, field }
+  const [editValue, setEditValue] = useState("");
+
+  // Fetch tracking + live metrics for all boosted media
+  const loadTracking = async () => {
+    const t = await fetch("/api/ig-boost-tracking").then(r => r.json()).catch(() => ({}));
+    const rows = t.tracking || [];
+    setTracking(rows);
+    
+    // Batch-fetch current metrics for each tracked media
+    if (rows.length > 0) {
+      const ids = [...new Set(rows.map(r => r.media_id))].join(",");
+      try {
+        const m = await fetch(`/api/ig-boost-metrics?ids=${ids}`).then(r => r.json());
+        setLiveMetrics(m.metrics || {});
+      } catch (e) { /* silent fail */ }
+    }
+  };
+
+  // Patch a tracking row field (emails_attributed, status, notes, etc.)
+  const patchTracking = async (id, field, value) => {
+    try {
+      const resp = await fetch("/api/ig-boost-tracking", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, [field]: value }),
+      });
+      if (!resp.ok) throw new Error("Update failed");
+      await loadTracking();
+      setEditingCell(null);
+    } catch (e) { console.error(e); }
+  };
 
   // Reusable fetch — called on mount AND from refresh button
   const loadAll = async () => {
@@ -126,6 +161,15 @@ export default function IgBoostTab() {
     const combined = [...(p.specials || []), ...(p.posts || [])];
     setPosts(combined);
     setTracking(t.tracking || []);
+    
+    // Also fetch live metrics for tracked media (for delta display)
+    const trackedIds = [...new Set((t.tracking || []).map(r => r.media_id))];
+    if (trackedIds.length > 0) {
+      fetch(`/api/ig-boost-metrics?ids=${trackedIds.join(",")}`)
+        .then(r => r.json())
+        .then(m => setLiveMetrics(m.metrics || {}))
+        .catch(() => {});
+    }
     
     // Initialize form state — pre-select best topical match per clip (not homepage)
     const initial = {};
@@ -170,14 +214,24 @@ export default function IgBoostTab() {
           budget_usd: f.budget,
           duration_days: f.days,
           status: "active",
+          // Baseline snapshot at boost time
+          baseline_views: clip.views,
+          baseline_reach: clip.reach,
+          baseline_likes: clip.likes,
+          baseline_comments: clip.comments,
+          baseline_shares: clip.shares,
+          baseline_saves: clip.saves,
+          baseline_follows: clip.follows,
+          baseline_profile_visits: clip.profile_visits,
+          baseline_engagement_rate: clip.engagement_rate,
+          baseline_follows_per_1k: clip.follows_per_1k,
         }),
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || "Insert failed");
-      setFeedback(prev => ({ ...prev, [clip.media_id]: { type: "ok", msg: "✓ Boost registrado" } }));
-      // Refresh tracking
-      const t = await fetch("/api/ig-boost-tracking").then(r => r.json());
-      setTracking(t.tracking || []);
+      setFeedback(prev => ({ ...prev, [clip.media_id]: { type: "ok", msg: "✓ Boost registrado con baseline" } }));
+      // Refresh tracking + current metrics
+      await loadTracking();
     } catch (e) {
       setFeedback(prev => ({ ...prev, [clip.media_id]: { type: "err", msg: e.message } }));
     } finally {
@@ -466,44 +520,156 @@ export default function IgBoostTab() {
       {/* TRACKING HISTORY */}
       {tracking.length > 0 && (
         <div style={{ marginTop: 28 }}>
-          <div style={{ fontSize: 10, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10, fontWeight: 600 }}>
-            🔄 Historial de boosts ({tracking.length})
-          </div>
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 12, overflow: "hidden" }}>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
-                <thead>
-                  <tr>
-                    {["Fecha", "Caption", "Landing", "UTM", "Budget", "Días", "Emails", "Status"].map(h => (
-                      <th key={h} style={{ padding: "8px 10px", textAlign: "left", color: "#71717A", borderBottom: "1px solid rgba(255,255,255,0.04)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {tracking.map(t => (
-                    <tr key={t.id}>
-                      <td style={{ padding: "7px 10px", color: "#A1A1AA", whiteSpace: "nowrap" }}>{fmtDate(t.boosted_at)}</td>
-                      <td style={{ padding: "7px 10px", color: "#E4E4E7", maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.caption?.split("\n")[0] || "—"}</td>
-                      <td style={{ padding: "7px 10px" }}>
-                        <a href={t.landing_url} target="_blank" rel="noopener" style={{ color: "#818CF8", textDecoration: "none", fontSize: 10 }}>
-                          {(t.landing_url || "").replace(/^https?:\/\//, "").slice(0, 28)}
-                        </a>
-                      </td>
-                      <td style={{ padding: "7px 10px", color: "#D4A843", fontFamily: "'JetBrains Mono'", fontSize: 10 }}>{t.utm_campaign}</td>
-                      <td style={{ padding: "7px 10px", color: "#22C55E" }}>${fmt(t.budget_usd)}</td>
-                      <td style={{ padding: "7px 10px", color: "#71717A" }}>{t.duration_days || "—"}</td>
-                      <td style={{ padding: "7px 10px", color: t.emails_attributed ? "#22C55E" : "#52525B", fontWeight: 600 }}>{t.emails_attributed ?? "—"}</td>
-                      <td style={{ padding: "7px 10px" }}>
-                        <span style={{ background: `${statusColor(t.status)}15`, color: statusColor(t.status), padding: "2px 8px", borderRadius: 4, fontSize: 9, fontWeight: 600, textTransform: "uppercase" }}>{t.status}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
+            <div style={{ fontSize: 10, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>
+              🔄 Historial de boosts · {tracking.length}
+            </div>
+            <div style={{ fontSize: 9, color: "#52525B" }}>
+              Métricas actuales vía Meta API · Δ vs baseline capturado al momento del boost
             </div>
           </div>
+          
+          {tracking.map(t => {
+            const live = liveMetrics[t.media_id] || {};
+            const deltaViews = live.views != null && t.baseline_views != null ? live.views - t.baseline_views : null;
+            const deltaFollows = live.follows != null && t.baseline_follows != null ? live.follows - t.baseline_follows : null;
+            const deltaSaves = live.saves != null && t.baseline_saves != null ? live.saves - t.baseline_saves : null;
+            const deltaProfile = live.profile_visits != null && t.baseline_profile_visits != null ? live.profile_visits - t.baseline_profile_visits : null;
+            
+            const emails = t.emails_attributed;
+            const paidSubs = t.paid_subs_attributed;
+            const budget = Number(t.budget_usd) || 0;
+            const costPerEmail = emails > 0 ? (budget / emails).toFixed(2) : null;
+            const costPerPaid = paidSubs > 0 ? (budget / paidSubs).toFixed(2) : null;
+            
+            const renderDelta = (delta, suffix = "") => {
+              if (delta == null) return <span style={{ color: "#3F3F46" }}>—</span>;
+              if (delta === 0) return <span style={{ color: "#52525B" }}>+0{suffix}</span>;
+              const color = delta > 0 ? "#22C55E" : "#EF4444";
+              const sign = delta > 0 ? "+" : "";
+              return <span style={{ color, fontWeight: 600 }}>{sign}{fmt(delta)}{suffix}</span>;
+            };
+            
+            const editField = (field, currentVal, placeholder = "—") => {
+              const isEditing = editingCell?.id === t.id && editingCell?.field === field;
+              if (isEditing) {
+                return (
+                  <input
+                    type="text"
+                    autoFocus
+                    value={editValue}
+                    onChange={e => setEditValue(e.target.value)}
+                    onBlur={() => patchTracking(t.id, field, editValue === "" ? null : (field === "status" || field === "notes" ? editValue : Number(editValue)))}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") e.target.blur();
+                      if (e.key === "Escape") setEditingCell(null);
+                    }}
+                    style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 4, padding: "3px 6px", fontSize: 11, color: "#22C55E", fontFamily: "'JetBrains Mono'", width: 70 }}
+                  />
+                );
+              }
+              return (
+                <span onClick={() => { setEditingCell({ id: t.id, field }); setEditValue(currentVal ?? ""); }} style={{ cursor: "pointer", borderBottom: "1px dashed rgba(255,255,255,0.1)" }} title="Click para editar">
+                  {currentVal != null && currentVal !== "" ? currentVal : placeholder}
+                </span>
+              );
+            };
+
+            return (
+              <div key={t.id} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: mob ? 12 : 14, marginBottom: 10 }}>
+                {/* Row header */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 10, flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "#E4E4E7", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {t.caption?.split("\n")[0] || "—"}
+                    </div>
+                    <div style={{ fontSize: 9, color: "#71717A", fontFamily: "'JetBrains Mono'", display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <span>📅 {fmtDate(t.boosted_at)}</span>
+                      <span style={{ color: "#D4A843" }}>UTM: {t.utm_campaign}</span>
+                      <a href={t.landing_url} target="_blank" rel="noopener" style={{ color: "#818CF8", textDecoration: "none" }}>
+                        → {(t.landing_url || "").replace(/^https?:\/\//, "").slice(0, 30)}
+                      </a>
+                      {t.permalink && <a href={t.permalink} target="_blank" rel="noopener" style={{ color: "#E1306C", textDecoration: "none" }}>↗ reel</a>}
+                    </div>
+                  </div>
+                  <span
+                    onClick={() => { setEditingCell({ id: t.id, field: "status" }); setEditValue(t.status || ""); }}
+                    style={{ background: `${statusColor(t.status)}15`, color: statusColor(t.status), padding: "3px 10px", borderRadius: 4, fontSize: 9, fontWeight: 600, textTransform: "uppercase", cursor: "pointer" }}
+                    title="Click para editar status"
+                  >
+                    {editingCell?.id === t.id && editingCell?.field === "status" ? editField("status", t.status) : (t.status || "—")}
+                  </span>
+                </div>
+
+                {/* Growth grid */}
+                <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 6, marginBottom: 10 }}>
+                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Views</div>
+                    <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
+                      {fmt(t.baseline_views)} → <span style={{ color: "#E4E4E7", fontWeight: 600 }}>{live.views != null ? fmt(live.views) : "—"}</span>
+                    </div>
+                    <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaViews)}</div>
+                  </div>
+                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Follows</div>
+                    <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
+                      {fmt(t.baseline_follows)} → <span style={{ color: "#D4A843", fontWeight: 600 }}>{live.follows != null ? fmt(live.follows) : "—"}</span>
+                    </div>
+                    <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaFollows)}</div>
+                  </div>
+                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Saves</div>
+                    <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
+                      {fmt(t.baseline_saves)} → <span style={{ color: "#818CF8", fontWeight: 600 }}>{live.saves != null ? fmt(live.saves) : "—"}</span>
+                    </div>
+                    <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaSaves)}</div>
+                  </div>
+                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Profile visits</div>
+                    <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
+                      {fmt(t.baseline_profile_visits)} → <span style={{ color: "#22C55E", fontWeight: 600 }}>{live.profile_visits != null ? fmt(live.profile_visits) : "—"}</span>
+                    </div>
+                    <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaProfile)}</div>
+                  </div>
+                </div>
+
+                {/* Attribution row */}
+                <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(5,1fr)", gap: 6, background: "rgba(34,197,94,0.04)", border: "1px solid rgba(34,197,94,0.08)", borderRadius: 6, padding: "10px 12px" }}>
+                  <div>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Budget</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#22C55E", fontFamily: "'Space Grotesk'" }}>${fmt(budget)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Emails captados</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: emails ? "#22C55E" : "#52525B", fontFamily: "'Space Grotesk'" }}>
+                      {editField("emails_attributed", t.emails_attributed)}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>$/email</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: costPerEmail ? "#D4A843" : "#3F3F46", fontFamily: "'Space Grotesk'" }}>
+                      {costPerEmail ? `$${costPerEmail}` : "—"}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Paid subs</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: paidSubs ? "#22C55E" : "#52525B", fontFamily: "'Space Grotesk'" }}>
+                      {editField("paid_subs_attributed", t.paid_subs_attributed)}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>$/paid</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: costPerPaid ? "#D4A843" : "#3F3F46", fontFamily: "'Space Grotesk'" }}>
+                      {costPerPaid ? `$${costPerPaid}` : "—"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          
           <div style={{ marginTop: 10, fontSize: 10, color: "#52525B", lineHeight: 1.5 }}>
-            ℹ️ Los emails atribuidos se llenan manualmente cruzando con el CSV de Substack sources filtrando por utm_campaign.
+            💡 Emails y paid subs se llenan manualmente (click el valor para editar) cruzando con el Substack sources CSV filtrando por utm_campaign. Próximamente: upload CSV → auto-match.
           </div>
         </div>
       )}
