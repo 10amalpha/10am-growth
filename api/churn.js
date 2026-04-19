@@ -163,17 +163,16 @@ export default async function handler(req, res) {
       const amountNum = parseFloat(amount);
 
       // Annual plan ($400/yr): access lasts until current_period_end
+      // Monthly plan ($40/mo): access also lasts until current_period_end
       // Stripe sets current_period_end to when the prepaid period expires
       const isAnnual = amountNum >= 300; // $400/yr or similar annual plans
       const periodEnd = sub.current_period_end
         ? new Date(sub.current_period_end * 1000)
         : null;
-      const accessExpired = isAnnual
-        ? periodEnd
-          ? periodEnd.getTime() < now
-          : daysSinceCancel !== null && daysSinceCancel >= 365
-        : daysSinceCancel !== null && daysSinceCancel >= 30;
-      const daysUntilExpiry = isAnnual && periodEnd
+      const accessExpired = periodEnd
+        ? periodEnd.getTime() < now
+        : daysSinceCancel !== null && daysSinceCancel >= (isAnnual ? 365 : 30);
+      const daysUntilExpiry = periodEnd
         ? Math.ceil((periodEnd.getTime() - now) / (1000 * 60 * 60 * 24))
         : null;
 
