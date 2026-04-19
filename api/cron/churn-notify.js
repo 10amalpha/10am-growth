@@ -163,14 +163,44 @@ export default async function handler(req, res) {
           });
         }
       } else {
-        // Monthly: newly passed 30-day mark (between 30 and 32 days)
-        if (daysSinceCancel >= 30 && daysSinceCancel <= 32) {
-          newlyExpired.push({
-            email,
-            plan: "Monthly ($" + amount + ")",
-            canceledAt: canceledAt.toISOString().split("T")[0],
-            expiredAt: canceledAt.toISOString().split("T")[0],
-          });
+        // Monthly: use periodEnd (when their paid access actually expires)
+        const periodEnd = sub.current_period_end
+          ? new Date(sub.current_period_end * 1000)
+          : null;
+
+        if (periodEnd) {
+          const periodExpiredMs = now - periodEnd.getTime();
+          // Expired within last 48h
+          if (periodEnd.getTime() < now && periodExpiredMs < twoDaysMs) {
+            newlyExpired.push({
+              email,
+              plan: "Monthly ($" + amount + ")",
+              canceledAt: canceledAt.toISOString().split("T")[0],
+              expiredAt: periodEnd.toISOString().split("T")[0],
+            });
+          }
+          // Expiring within 3 days (heads up for monthly)
+          const daysUntilExpiry = Math.ceil(
+            (periodEnd.getTime() - now) / (1000 * 60 * 60 * 24)
+          );
+          if (daysUntilExpiry > 0 && daysUntilExpiry <= 3) {
+            upcomingExpiry.push({
+              email,
+              plan: "Monthly ($" + amount + ")",
+              daysLeft: daysUntilExpiry,
+              expiresAt: periodEnd.toISOString().split("T")[0],
+            });
+          }
+        } else {
+          // Fallback: no periodEnd, use 30-day rule
+          if (daysSinceCancel >= 30 && daysSinceCancel <= 32) {
+            newlyExpired.push({
+              email,
+              plan: "Monthly ($" + amount + ")",
+              canceledAt: canceledAt.toISOString().split("T")[0],
+              expiredAt: canceledAt.toISOString().split("T")[0],
+            });
+          }
         }
       }
     }
