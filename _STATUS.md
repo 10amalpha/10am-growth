@@ -266,9 +266,11 @@ Started Apr 18 as a cron-based architecture (daily precompute → Supabase cache
 | `api/ig-boost-metrics.js` | GET current metrics for a list of media IDs (used by tracking history for delta computation) |
 | `api/substack-posts.js` | GET last 50 posts from `10am.pro/feed` RSS (cache 60s). Populates landing dropdown |
 | `api/ig-boost-tracking.js` | GET history, POST new boost (with baselines), PATCH updates (`emails_attributed`, `paid_subs_attributed`, `status`, etc.) |
+| `api/cron/ig-boost-notify.js` | **Email alert cron** — Mon+Thu 13:00 UTC. Calls `/api/ig-boost-live`, filters by threshold+age+cooldown+tracking, sends Resend email to `info@10am.pro` if candidates found |
 | `src/app/IgBoostTab.jsx` | Frontend: Top 3 cards + candidates table + CAC-first tracking history |
 | `supabase-ig-boost-schema.sql` | Initial schema for `ig_boost_tracking` table |
 | `supabase-ig-boost-migration-1.sql` | Adds baseline metric columns + `paid_subs_attributed`, `mrr_attributed` |
+| `supabase-ig-boost-alerts-schema.sql` | `ig_boost_alerts_sent` table — anti-spam cooldown for email alerts |
 
 ### Scoring formula (v1)
 
@@ -359,6 +361,48 @@ The 2 metrics that matter for the business: **$/email** and **$/paid sub**. Ever
 | $/paid sub | < $80 (≈ 10mo payback at $8/mo) | > $150 |
 
 **Decision rule:** If $/email > $15 or $/paid > $150 across 3+ boosts, pause IG boost strategy. Data says: reconsider channel or landing strategy before scaling.
+
+### Email Alert System (Apr 19 2026)
+
+**Goal:** Proactive push — get emailed when a reel hits boost-worthy signals, instead of pulling the tab manually.
+
+**How it works (plain language):**
+
+Cron fires Mon+Thu at 13:00 UTC → calls `/api/ig-boost-live` (same endpoint the tab uses) → filters to candidates worth alerting about → sends one email with all of them → records that they've been alerted (so it doesn't spam).
+
+**Filter chain (a reel must pass all 5):**
+
+1. `score >= 50` (the scoring formula from main feature — saves/follows/profile-visits/ER weighted)
+2. `published_at` within last 30 days (fresher reels boost better)
+3. Not in `ig_boost_tracking` with `status = rejected` (already tried and blocked by Meta)
+4. Not in `ig_boost_tracking` at all (already boosted, no reason to alert)
+5. Not in `ig_boost_alerts_sent` within last 7 days (cooldown — same reel won't spam inbox)
+
+If zero candidates pass → cron completes silently, no email. Only emails when there's something actionable.
+
+**Email contents (matches `/admin/churn` aesthetic — dark, mono, accent verde):**
+
+- Header with candidate count
+- Per candidate: rank, age in days, score badge, caption, 4-metric grid (Views / ER / Saves-1K / Shares), scoring reasoning, topical landing match (if Substack post matches), **political risk flag** (regex on caption for Trump/Petro/Milei/elecciones/etc — auto-warns about Meta classifier based on the Madmen rejection)
+- Two CTAs per candidate: `Ver reel ↗` (pink) + `Configurar boost →` (green) both deep-link to existing flows
+
+**Anti-spam cooldown:**
+
+`ig_boost_alerts_sent` table records `media_id`, `score`, `reel_age_days`, `notes`, timestamp. Query filters candidates against alerts from last 7 days. So a reel with score 52 alerted Monday won't re-alert Thursday even if still qualifying — but if its score climbs above 50 after Monday+7 it can re-appear (matches requirement of 1-week-re-consideration).
+
+**Reuses from existing infra:**
+
+- Same `RESEND_API_KEY` env var as churn-notify
+- Same sender (`onboarding@resend.dev`)
+- Same recipient (`info@10am.pro`)
+- Same auth pattern (cron secret or `?pass=elgordo` for manual trigger)
+- Same HTML aesthetic (Helvetica + dark bg + verde/oro accents matching the brand palette)
+- Reuses `/api/ig-boost-live` for scoring (single source of truth — no duplicate scoring code)
+- Reuses `/api/substack-posts` for topical landing match
+
+**Why this matters for the business:**
+
+Going from pull to push. The tab requires you to remember to check; the cron guarantees no high-score reel within its 30-day window goes unseen. Also surfaces the political risk flag *before* you spend time setting up a boost that Meta will reject — learning captured from the Madmen rejection on Apr 19.
 
 ### Phase 2 — future improvements
 
