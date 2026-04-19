@@ -201,67 +201,124 @@ Automated subscriber cleanup tool for the 10am Alpha WhatsApp chat. Live at:
 
 ---
 
-## 🚀 IG Boost Feature (Apr 18, 2026)
+## 🚀 IG Boost Feature (Apr 18–19, 2026)
 
-**Goal:** Automate recommendation of which IG Reels to boost for email conversion, replacing manual CSV analysis.
+**Goal:** Measure **cost per email** and **cost per paid sub** for IG boosts — replace "boost by feel" with a data-driven loop. Recommend which reel to boost, which landing to send traffic to, and track ROI end-to-end.
 
-### Architecture
+### Evolution note
+
+Started Apr 18 as a cron-based architecture (daily precompute → Supabase cache → UI). Refactored Apr 19 to **live fetch** — simpler, always fresh, easier to extend to TikTok/YT later. Cron + recommendations table are deprecated but the SQL table remains (harmless, can drop later).
+
+### Architecture (current — live fetch)
 
 | Piece | Purpose |
 |---|---|
-| `api/cron/compute-ig-boost.js` | Daily 8 AM UTC. Pulls last 28d of IG Reels via Graph API v22.0, filters ≤60s (Boost eligibility), scores by conversion signals, upserts top 10 to Supabase |
-| `api/ig-boost-recommendations.js` | GET latest snapshot from Supabase |
-| `api/substack-posts.js` | GET last 50 posts from `10am.pro/feed` RSS — populates landing dropdown |
-| `api/ig-boost-tracking.js` | POST saves boost decisions, GET returns history |
-| `src/app/IgBoostTab.jsx` | Frontend: Top 3 cards + candidates table + history |
-| `supabase-ig-boost-schema.sql` | Schema for `ig_boost_recommendations` and `ig_boost_tracking` tables |
+| `api/ig-boost-live.js` | **Live fetch endpoint (~30s)** — pulls last 28d of reels via Meta Graph API v22.0 using Batch API, scores by conversion signals, returns top 10. Called on every tab load. `Cache-Control: no-store` |
+| `api/ig-boost-metrics.js` | GET current metrics for a list of media IDs (used by tracking history for delta computation) |
+| `api/substack-posts.js` | GET last 50 posts from `10am.pro/feed` RSS (cache 60s). Populates landing dropdown |
+| `api/ig-boost-tracking.js` | GET history, POST new boost (with baselines), PATCH updates (`emails_attributed`, `paid_subs_attributed`, `status`, etc.) |
+| `src/app/IgBoostTab.jsx` | Frontend: Top 3 cards + candidates table + CAC-first tracking history |
+| `supabase-ig-boost-schema.sql` | Initial schema for `ig_boost_tracking` table |
+| `supabase-ig-boost-migration-1.sql` | Adds baseline metric columns + `paid_subs_attributed`, `mrr_attributed` |
 
-### Scoring Formula (v1)
+### Scoring formula (v1)
 
 ```
 score = (follows_per_1k × 3) + (saves_per_1k × 2) + (profile_visits_per_1k × 1.5) + (engagement_rate × 10)
 ```
 
-- **Follows/1K**: strongest signal — follow means user navigated to profile (one tap from bio link)
-- **Saves/1K**: depth signal — user wants to reference the content again
-- **Profile visits/1K**: bio-link proximity
-- **ER (likes+comments+shares+saves / views × 100)**: Meta's paid-delivery multiplier
+**Why these signals:**
+- **Follows/1K**: strongest — follow means user went to profile (one tap from bio link)
+- **Saves/1K**: depth signal — reference content the user wants to return to
+- **Profile visits/1K**: bio-link proximity (not always returned by Meta API)
+- **ER**: Meta's paid-delivery amplifier — higher ER = cheaper reach on boost
+
+**Meta API quirks discovered:**
+- `video_duration` field returns 400 on v22.0 — duration is null for all clips, filter relaxed to allow unknown duration
+- `views` sometimes comes as 0 — fallback chain: `views` → `ig_reels_aggregated_all_plays_count` → `reach`
+- `follows` and `profile_visits` not always returned — handled gracefully (defaults to 0)
+- Must use Batch API (50 reels/request) to avoid timeout on `/insights` per-reel
 
 **Filters applied:**
-- Duration ≤60s (hard IG Boost limit — 60s+ requires Ads Manager)
+- Reels only (`media_product_type === "REELS"` OR `media_type === "VIDEO"`)
 - Published within last 28 days
-- Views ≤ 3× median of eligible clips (excludes already-burned-out virals)
+- Views ≥ 500 (minimum baseline for signal)
+- Views ≤ 3× median of eligible clips (excludes already-burned virals)
 
-### First-time setup (ONE TIME)
+### UI architecture — CAC-first design (Apr 19)
 
-1. **Run SQL** in Supabase SQL Editor: `supabase-ig-boost-schema.sql`
-2. **Verify Vercel env vars** for `10am-growth` project:
-   - `IG_ACCESS_TOKEN` — same token as shorts-analytics (expires ~May 11, 2026)
-   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (already set)
-   - `CRON_SECRET` — optional, for Vercel cron auth
-3. **Trigger cron manually** to populate first batch:
-   ```
-   GET https://growth.10am.pro/api/cron/compute-ig-boost?pass=elgordo
-   ```
-4. Open **https://growth.10am.pro** → 🚀 IG Boost tab
+The 2 metrics that matter for the business: **$/email** and **$/paid sub**. Everything else is secondary.
+
+**Tracking history shows (in order):**
+1. **Aggregate summary** — 4 big boxes: $/email agg · $/paid agg · Total invested · Pending attribution. Plus benchmark line showing ✓/⚠/✗ vs targets ($5/email, $80/paid)
+2. **Per-boost card** — 5 boxes at top: $ Invested · Emails · **$/EMAIL** · Paid · **$/PAID**. The 2 stars are 22px font, bordered, always visible
+3. **IG delta (views/follows/saves/profile_visits)** — collapsed into `<details>` dropdown. Secondary context only
+
+**Landing URL selection logic:**
+- Topical matching against last 50 Substack posts (counts overlapping signal words ≥4 chars between caption and post title, excluding stopwords)
+- Best match 🎯 auto-selected per clip
+- Homepage deprioritized with ⚠️ red warning ("1.3% conv vs 8%+ for topical posts")
+- `/subscribe` as fallback when no topical post exists
+
+### First-time setup (ONE TIME, done Apr 19)
+
+1. ✅ Schema SQL run in Supabase
+2. ✅ Migration SQL run (adds baseline_* and paid_subs_attributed, mrr_attributed)
+3. ✅ Env vars verified (`IG_ACCESS_TOKEN` already set from shorts-analytics, expires ~May 11 2026)
+4. ✅ First boost inserted via one-shot admin endpoint (since POST from Vercel web fetch isn't reliable from outside the browser)
 
 ### Workflow (ongoing)
 
-1. Cron runs daily at 8 AM UTC → writes top 10 recommendations to Supabase
-2. Hernán opens IG Boost tab → sees Top 3 with scoring reasoning
-3. Picks landing from Substack dropdown, sets budget + days, edits UTM campaign slug
-4. Clicks "Marcar como boosteado" → row saved to `ig_boost_tracking`
-5. Copies the UTM-appended URL and pastes into IG's native Boost flow
-6. Monthly: cross-reference `utm_campaign` values with Substack sources CSV to fill `emails_attributed` field manually
-7. Over time: cost/email per campaign becomes the feedback loop to tune scoring weights
+1. Open **growth.10am.pro → 🚀 IG Boost** → wait ~30s for live fetch
+2. See Top 3 recommended clips with reasoning
+3. Check the 🎯 auto-selected landing → override from dropdown if needed
+4. Set budget + days → UTM campaign slug auto-generated (editable)
+5. Copy the URL with UTMs, paste into Meta's Boost flow (Goal: "Get more website visitors", Button: "Sign up", Advantage+ creative: OFF)
+6. In Meta: set budget/duration, wait for approval, launch
+7. Back in growth.10am.pro → click "✓ Marcar como boosteado" → baseline captured automatically
+8. **CRITICAL:** UTM in the tab must exactly match the UTM in the Meta ad URL
+9. Days later: tab shows IG delta live (views/follows growth from the boost)
+10. After campaign ends: export Substack sources CSV → filter by utm_campaign → click the "Emails captados" field in the tab → type the number → Enter. `$/email` auto-computes
+11. When users convert to paid (via Stripe), click "Paid subs" in the tab → update manually → `$/paid` auto-computes
 
-### Future improvements
+### Active boost (as of Apr 19 2026)
 
-- Auto-match Substack post to clip via Claude API (currently manual dropdown — decided Apr 18 for MVP speed)
-- Add TikTok scoring when API access exists (same scoring model, different eligibility rules)
-- Add YouTube Shorts scoring via YT Data API
-- Auto-fill `emails_attributed` by parsing Substack sources CSV upload
-- A/B test different UTM landing structures
+| Field | Value |
+|---|---|
+| Clip | Donald Trump y la teoría del Madmen (11 abr 2026) |
+| Reel | https://www.instagram.com/reel/DXAk65RjSnQ/ |
+| Landing | https://www.10am.pro/p/e204-estados-unidos-en-busca-del |
+| UTM | `e204_usa_abr26` |
+| Budget | $98 ($14/day × 7 days) |
+| End date | 26 Apr 2026 |
+| Baseline | Views 6,916 · Reach 4,684 · Likes 250 · Comments 10 · Shares 66 · Saves 23 · ER 5.05% |
+| Meta ad status | In review as of Apr 19 15:26 UTC |
+| Supabase row ID | 1 |
+| Payment | Visa ****6491 (Tareasplus) |
+
+**What to track:**
+- Day 1-2: arrives out of review, delivery starts
+- Day 3-4: learning phase ends, CPC stabilizes
+- Day 7 (26 abr): boost ends → export Substack CSV → update `emails_attributed`
+- Day 30+: check Stripe for paid conversions → update `paid_subs_attributed`
+
+### Benchmarks (target ranges)
+
+| Metric | Target | Alert threshold |
+|---|---|---|
+| $/email | < $5 | > $10 |
+| $/paid sub | < $80 (≈ 10mo payback at $8/mo) | > $150 |
+
+**Decision rule:** If $/email > $15 or $/paid > $150 across 3+ boosts, pause IG boost strategy. Data says: reconsider channel or landing strategy before scaling.
+
+### Phase 2 — future improvements
+
+- **Upload Substack sources CSV** in the tab → auto-match by `utm_campaign` → fills `emails_attributed` without manual entry
+- **Stripe cross-reference** for automatic `paid_subs_attributed` (match emails captured → Stripe customers created post-boost date)
+- **Extend to TikTok** via TikTok Research API (when approved)
+- **Extend to YouTube Shorts** via YT Data API (already have key)
+- **Auto-tune scoring weights** by regressing historical CAC outcomes against score components
+- **Claude API topical matching** to replace keyword overlap (will handle synonyms, broader topical semantic match)
 
 ---
 
