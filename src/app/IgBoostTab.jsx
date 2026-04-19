@@ -520,15 +520,97 @@ export default function IgBoostTab() {
       {/* TRACKING HISTORY */}
       {tracking.length > 0 && (
         <div style={{ marginTop: 28 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
             <div style={{ fontSize: 10, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>
               🔄 Historial de boosts · {tracking.length}
             </div>
             <div style={{ fontSize: 9, color: "#52525B" }}>
-              Métricas actuales vía Meta API · Δ vs baseline capturado al momento del boost
+              Métricas actuales vía Meta API · Δ vs baseline
             </div>
           </div>
-          
+
+          {/* ═══ AGGREGATE: THE 2 METRICS THAT MATTER ═══ */}
+          {(() => {
+            const totalBudget = tracking.reduce((a, t) => a + (Number(t.budget_usd) || 0), 0);
+            const totalEmails = tracking.reduce((a, t) => a + (Number(t.emails_attributed) || 0), 0);
+            const totalPaid = tracking.reduce((a, t) => a + (Number(t.paid_subs_attributed) || 0), 0);
+            const avgCostPerEmail = totalEmails > 0 ? (totalBudget / totalEmails) : null;
+            const avgCostPerPaid = totalPaid > 0 ? (totalBudget / totalPaid) : null;
+            const activeCount = tracking.filter(t => t.status === "active").length;
+            const pendingAttribution = tracking.filter(t => !t.emails_attributed).length;
+
+            return (
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 10, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8, fontWeight: 600 }}>
+                  📊 Resumen — CAC agregado
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 10, marginBottom: 10 }}>
+                  {/* COST PER EMAIL — the headline */}
+                  <div style={{ background: avgCostPerEmail ? "rgba(34,197,94,0.06)" : "rgba(255,255,255,0.02)", border: avgCostPerEmail ? "1px solid rgba(34,197,94,0.25)" : "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: mob ? "14px 12px" : "18px 16px" }}>
+                    <div style={{ fontSize: 9, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6, fontWeight: 600 }}>💰 Costo por Email</div>
+                    <div style={{ fontSize: mob ? 24 : 30, fontWeight: 800, color: avgCostPerEmail ? "#22C55E" : "#3F3F46", fontFamily: "'Space Grotesk'", lineHeight: 1 }}>
+                      {avgCostPerEmail ? `$${avgCostPerEmail.toFixed(2)}` : "—"}
+                    </div>
+                    <div style={{ fontSize: 10, color: "#71717A", marginTop: 6 }}>
+                      {totalEmails > 0 ? `${fmt(totalEmails)} emails / $${fmt(totalBudget)}` : "Aún sin atribución"}
+                    </div>
+                  </div>
+
+                  {/* COST PER PAID — the other headline */}
+                  <div style={{ background: avgCostPerPaid ? "rgba(212,168,67,0.06)" : "rgba(255,255,255,0.02)", border: avgCostPerPaid ? "1px solid rgba(212,168,67,0.25)" : "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: mob ? "14px 12px" : "18px 16px" }}>
+                    <div style={{ fontSize: 9, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6, fontWeight: 600 }}>💎 Costo por Paid</div>
+                    <div style={{ fontSize: mob ? 24 : 30, fontWeight: 800, color: avgCostPerPaid ? "#D4A843" : "#3F3F46", fontFamily: "'Space Grotesk'", lineHeight: 1 }}>
+                      {avgCostPerPaid ? `$${avgCostPerPaid.toFixed(2)}` : "—"}
+                    </div>
+                    <div style={{ fontSize: 10, color: "#71717A", marginTop: 6 }}>
+                      {totalPaid > 0 ? `${fmt(totalPaid)} paid subs / $${fmt(totalBudget)}` : "Aún sin atribución"}
+                    </div>
+                  </div>
+
+                  {/* Total invested */}
+                  <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: mob ? "14px 12px" : "18px 16px" }}>
+                    <div style={{ fontSize: 9, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6, fontWeight: 600 }}>💸 Total invertido</div>
+                    <div style={{ fontSize: mob ? 22 : 26, fontWeight: 700, color: "#E4E4E7", fontFamily: "'Space Grotesk'", lineHeight: 1 }}>
+                      ${fmt(totalBudget)}
+                    </div>
+                    <div style={{ fontSize: 10, color: "#71717A", marginTop: 6 }}>
+                      {activeCount} activo{activeCount !== 1 ? "s" : ""} · {tracking.length - activeCount} cerrado{(tracking.length - activeCount) !== 1 ? "s" : ""}
+                    </div>
+                  </div>
+
+                  {/* Pending attribution */}
+                  <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: mob ? "14px 12px" : "18px 16px" }}>
+                    <div style={{ fontSize: 9, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6, fontWeight: 600 }}>⏳ Sin atribuir</div>
+                    <div style={{ fontSize: mob ? 22 : 26, fontWeight: 700, color: pendingAttribution > 0 ? "#D4A843" : "#22C55E", fontFamily: "'Space Grotesk'", lineHeight: 1 }}>
+                      {pendingAttribution}
+                    </div>
+                    <div style={{ fontSize: 10, color: "#71717A", marginTop: 6 }}>
+                      {pendingAttribution > 0 ? "Actualiza desde CSV" : "Todos atribuidos"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Benchmark context */}
+                {(avgCostPerEmail || avgCostPerPaid) && (
+                  <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 8, padding: "10px 14px", fontSize: 10, color: "#A1A1AA", lineHeight: 1.6 }}>
+                    <span style={{ color: "#71717A" }}>Benchmark:</span>{" "}
+                    {avgCostPerEmail && (
+                      <>
+                        Email orgánico ≈ $3.40 · target &lt; $5 · {avgCostPerEmail <= 5 ? <span style={{ color: "#22C55E", fontWeight: 600 }}>✓ dentro de target</span> : avgCostPerEmail <= 10 ? <span style={{ color: "#D4A843", fontWeight: 600 }}>⚠ alto pero viable</span> : <span style={{ color: "#EF4444", fontWeight: 600 }}>✗ sobre target</span>}
+                        {avgCostPerPaid && <> · </>}
+                      </>
+                    )}
+                    {avgCostPerPaid && (
+                      <>
+                        Paid sub target &lt; $80 (payback ~10mo a $8/mo) · {avgCostPerPaid <= 80 ? <span style={{ color: "#22C55E", fontWeight: 600 }}>✓ rentable</span> : avgCostPerPaid <= 150 ? <span style={{ color: "#D4A843", fontWeight: 600 }}>⚠ payback lento</span> : <span style={{ color: "#EF4444", fontWeight: 600 }}>✗ revisar</span>}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {tracking.map(t => {
             const live = liveMetrics[t.media_id] || {};
             const deltaViews = live.views != null && t.baseline_views != null ? live.views - t.baseline_views : null;
@@ -578,7 +660,7 @@ export default function IgBoostTab() {
             return (
               <div key={t.id} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: mob ? 12 : 14, marginBottom: 10 }}>
                 {/* Row header */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10, gap: 10, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12, gap: 10, flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: "#E4E4E7", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {t.caption?.split("\n")[0] || "—"}
@@ -601,69 +683,88 @@ export default function IgBoostTab() {
                   </span>
                 </div>
 
-                {/* Growth grid */}
-                <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 6, marginBottom: 10 }}>
-                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
-                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Views</div>
-                    <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
-                      {fmt(t.baseline_views)} → <span style={{ color: "#E4E4E7", fontWeight: 600 }}>{live.views != null ? fmt(live.views) : "—"}</span>
-                    </div>
-                    <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaViews)}</div>
+                {/* ═══ CAC METRICS — THE HEADLINE ═══ */}
+                <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(5,1fr)", gap: 8, marginBottom: 12 }}>
+                  {/* Budget */}
+                  <div style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, fontWeight: 600 }}>💸 Invertido</div>
+                    <div style={{ fontSize: mob ? 16 : 18, fontWeight: 700, color: "#E4E4E7", fontFamily: "'Space Grotesk'", lineHeight: 1 }}>${fmt(budget)}</div>
+                    <div style={{ fontSize: 9, color: "#52525B", marginTop: 3 }}>{t.duration_days || "—"}d</div>
                   </div>
-                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
-                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Follows</div>
-                    <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
-                      {fmt(t.baseline_follows)} → <span style={{ color: "#D4A843", fontWeight: 600 }}>{live.follows != null ? fmt(live.follows) : "—"}</span>
+
+                  {/* Emails */}
+                  <div style={{ background: emails > 0 ? "rgba(34,197,94,0.06)" : "rgba(0,0,0,0.25)", border: emails > 0 ? "1px solid rgba(34,197,94,0.2)" : "1px solid rgba(255,255,255,0.05)", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, fontWeight: 600 }}>📧 Emails</div>
+                    <div style={{ fontSize: mob ? 16 : 18, fontWeight: 700, color: emails > 0 ? "#22C55E" : "#52525B", fontFamily: "'Space Grotesk'", lineHeight: 1 }}>
+                      {editField("emails_attributed", t.emails_attributed)}
                     </div>
-                    <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaFollows)}</div>
+                    <div style={{ fontSize: 9, color: "#52525B", marginTop: 3 }}>click para editar</div>
                   </div>
-                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
-                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Saves</div>
-                    <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
-                      {fmt(t.baseline_saves)} → <span style={{ color: "#818CF8", fontWeight: 600 }}>{live.saves != null ? fmt(live.saves) : "—"}</span>
+
+                  {/* ⭐ COST PER EMAIL — THE METRIC */}
+                  <div style={{ background: costPerEmail ? "rgba(34,197,94,0.1)" : "rgba(0,0,0,0.25)", border: costPerEmail ? "1px solid rgba(34,197,94,0.35)" : "1px solid rgba(255,255,255,0.05)", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 8, color: costPerEmail ? "#22C55E" : "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, fontWeight: 700 }}>⭐ $/EMAIL</div>
+                    <div style={{ fontSize: mob ? 18 : 22, fontWeight: 800, color: costPerEmail ? "#22C55E" : "#3F3F46", fontFamily: "'Space Grotesk'", lineHeight: 1 }}>
+                      {costPerEmail ? `$${costPerEmail}` : "—"}
                     </div>
-                    <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaSaves)}</div>
+                    <div style={{ fontSize: 9, color: "#52525B", marginTop: 3 }}>target &lt;$5</div>
                   </div>
-                  <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
-                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Profile visits</div>
-                    <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
-                      {fmt(t.baseline_profile_visits)} → <span style={{ color: "#22C55E", fontWeight: 600 }}>{live.profile_visits != null ? fmt(live.profile_visits) : "—"}</span>
+
+                  {/* Paid subs */}
+                  <div style={{ background: paidSubs > 0 ? "rgba(212,168,67,0.06)" : "rgba(0,0,0,0.25)", border: paidSubs > 0 ? "1px solid rgba(212,168,67,0.2)" : "1px solid rgba(255,255,255,0.05)", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, fontWeight: 600 }}>💎 Paid</div>
+                    <div style={{ fontSize: mob ? 16 : 18, fontWeight: 700, color: paidSubs > 0 ? "#D4A843" : "#52525B", fontFamily: "'Space Grotesk'", lineHeight: 1 }}>
+                      {editField("paid_subs_attributed", t.paid_subs_attributed)}
                     </div>
-                    <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaProfile)}</div>
+                    <div style={{ fontSize: 9, color: "#52525B", marginTop: 3 }}>click para editar</div>
+                  </div>
+
+                  {/* ⭐ COST PER PAID — THE METRIC */}
+                  <div style={{ background: costPerPaid ? "rgba(212,168,67,0.1)" : "rgba(0,0,0,0.25)", border: costPerPaid ? "1px solid rgba(212,168,67,0.35)" : "1px solid rgba(255,255,255,0.05)", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 8, color: costPerPaid ? "#D4A843" : "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4, fontWeight: 700 }}>⭐ $/PAID</div>
+                    <div style={{ fontSize: mob ? 18 : 22, fontWeight: 800, color: costPerPaid ? "#D4A843" : "#3F3F46", fontFamily: "'Space Grotesk'", lineHeight: 1 }}>
+                      {costPerPaid ? `$${costPerPaid}` : "—"}
+                    </div>
+                    <div style={{ fontSize: 9, color: "#52525B", marginTop: 3 }}>target &lt;$80</div>
                   </div>
                 </div>
 
-                {/* Attribution row */}
-                <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(5,1fr)", gap: 6, background: "rgba(34,197,94,0.04)", border: "1px solid rgba(34,197,94,0.08)", borderRadius: 6, padding: "10px 12px" }}>
-                  <div>
-                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Budget</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#22C55E", fontFamily: "'Space Grotesk'" }}>${fmt(budget)}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Emails captados</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: emails ? "#22C55E" : "#52525B", fontFamily: "'Space Grotesk'" }}>
-                      {editField("emails_attributed", t.emails_attributed)}
+                {/* IG growth — secondary context (collapsed style) */}
+                <details style={{ marginTop: 4 }}>
+                  <summary style={{ fontSize: 9, color: "#52525B", textTransform: "uppercase", letterSpacing: "0.1em", cursor: "pointer", padding: "6px 0", fontWeight: 600 }}>
+                    📊 IG delta (views, follows, saves, profile visits)
+                  </summary>
+                  <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 6, marginTop: 8 }}>
+                    <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
+                      <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Views</div>
+                      <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
+                        {fmt(t.baseline_views)} → <span style={{ color: "#E4E4E7", fontWeight: 600 }}>{live.views != null ? fmt(live.views) : "—"}</span>
+                      </div>
+                      <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaViews)}</div>
+                    </div>
+                    <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
+                      <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Follows</div>
+                      <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
+                        {fmt(t.baseline_follows)} → <span style={{ color: "#D4A843", fontWeight: 600 }}>{live.follows != null ? fmt(live.follows) : "—"}</span>
+                      </div>
+                      <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaFollows)}</div>
+                    </div>
+                    <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
+                      <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Saves</div>
+                      <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
+                        {fmt(t.baseline_saves)} → <span style={{ color: "#818CF8", fontWeight: 600 }}>{live.saves != null ? fmt(live.saves) : "—"}</span>
+                      </div>
+                      <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaSaves)}</div>
+                    </div>
+                    <div style={{ background: "rgba(0,0,0,0.2)", borderRadius: 6, padding: "8px 10px" }}>
+                      <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Profile visits</div>
+                      <div style={{ fontSize: 11, color: "#A1A1AA", fontFamily: "'JetBrains Mono'" }}>
+                        {fmt(t.baseline_profile_visits)} → <span style={{ color: "#22C55E", fontWeight: 600 }}>{live.profile_visits != null ? fmt(live.profile_visits) : "—"}</span>
+                      </div>
+                      <div style={{ fontSize: 10, marginTop: 2 }}>{renderDelta(deltaProfile)}</div>
                     </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>$/email</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: costPerEmail ? "#D4A843" : "#3F3F46", fontFamily: "'Space Grotesk'" }}>
-                      {costPerEmail ? `$${costPerEmail}` : "—"}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>Paid subs</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: paidSubs ? "#22C55E" : "#52525B", fontFamily: "'Space Grotesk'" }}>
-                      {editField("paid_subs_attributed", t.paid_subs_attributed)}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 8, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 3 }}>$/paid</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: costPerPaid ? "#D4A843" : "#3F3F46", fontFamily: "'Space Grotesk'" }}>
-                      {costPerPaid ? `$${costPerPaid}` : "—"}
-                    </div>
-                  </div>
-                </div>
+                </details>
               </div>
             );
           })}
