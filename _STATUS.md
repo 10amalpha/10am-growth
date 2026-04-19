@@ -183,9 +183,9 @@ Automated subscriber cleanup tool for the 10am Alpha WhatsApp chat. Connects dir
 
 - **Schedule:** Daily at 8:00 AM COT (13:00 UTC) — `vercel.json` cron: `"0 13 * * *"`
 - **Vercel Cron Settings:** Registered and enabled (Vercel → 10am-growth → Settings → Cron Jobs). Can be manually triggered via "Run" button there
-- **Recipients:** hernanjaramillo@gmail.com + info@10am.pro
+- **Recipients:** info@10am.pro only (Resend free tier limitation — `onboarding@resend.dev` sender can only email the account owner. To add hernanjaramillo@gmail.com, verify `10am.pro` domain at resend.com/domains and change `from` to `churn@10am.pro`)
 - **Email service:** Resend (free tier, 100/day). API key stored as `RESEND_API_KEY` env var
-- **From address:** `10AMPRO Churn Control <onboarding@resend.dev>` (Resend free tier default)
+- **From address:** `10AMPRO Churn Control <onboarding@resend.dev>` (Resend free tier default — change to `churn@10am.pro` after domain verification)
 - **How it decides to send:** Cross-references Stripe expired subs against `churn_removed` Supabase table. If ANY sub has expired access AND is NOT checked off → sends email. Also sends 7-day heads-up for annual subs and 3-day heads-up for monthly subs about to expire
 - **Silent when nothing to do:** No email if all expired subs are already checked off and nothing is expiring soon
 - **Will keep emailing:** If you don't check someone off on the dashboard, the cron will report them again the next day. This is intentional — it's a reminder to take action
