@@ -192,15 +192,47 @@ export default async function handler(req, res) {
       }
     }
 
+    // Detect new re-subs: active emails that were previously canceled
+    // Cross-reference with churn_resub_notified to avoid duplicate alerts
+    let resubNotifiedEmails = new Set();
+    try {
+      const { data: notifiedData } = await supabase.from("churn_resub_notified").select("email");
+      if (notifiedData) notifiedData.forEach(r => resubNotifiedEmails.add(r.email.toLowerCase()));
+    } catch {}
+
+    const newResubs = [];
+    for (const sub of allCanceled) {
+      const customer = typeof sub.customer === "object" ? sub.customer : null;
+      const email = customer?.email || "unknown";
+      if (email === "unknown") continue;
+      // This person has an old canceled sub AND a current active sub = re-subbed
+      if (activeEmails.has(email.toLowerCase()) && !resubNotifiedEmails.has(email.toLowerCase())) {
+        newResubs.push({ email });
+      }
+    }
+    // Deduplicate (one person may have multiple canceled subs)
+    const uniqueResubs = [...new Map(newResubs.map(r => [r.email.toLowerCase(), r])).values()];
+
+    // Mark new re-subs as notified
+    if (uniqueResubs.length > 0) {
+      try {
+        await supabase.from("churn_resub_notified").upsert(
+          uniqueResubs.map(r => ({ email: r.email.toLowerCase(), notified_at: new Date().toISOString() })),
+          { onConflict: "email" }
+        );
+      } catch {}
+    }
+
     // Only send email if there's something to report
     const hasNews =
-      newlyExpired.length > 0 || upcomingExpiry.length > 0;
+      newlyExpired.length > 0 || upcomingExpiry.length > 0 || uniqueResubs.length > 0;
 
     if (!hasNews) {
       return res.status(200).json({
-        message: "No new expirations or upcoming expiries. No email sent.",
+        message: "No new expirations, upcoming expiries, or re-subs. No email sent.",
         newlyExpired: 0,
         upcomingExpiry: 0,
+        newResubs: 0,
       });
     }
 
@@ -260,12 +292,39 @@ export default async function handler(req, res) {
       emailHtml += `</table></div>`;
     }
 
+    if (uniqueResubs.length > 0) {
+      emailHtml += `
+        <div style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          <h2 style="color: #22C55E; font-size: 14px; margin: 0 0 12px 0;">🎉 RE-SUBSCRIBED (${uniqueResubs.length})</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <tr style="color: #71717A; font-size: 11px; text-transform: uppercase;">
+              <td style="padding: 4px 8px;">Email</td>
+            </tr>
+      `;
+      for (const s of uniqueResubs) {
+        emailHtml += `
+            <tr style="border-top: 1px solid rgba(255,255,255,0.05);">
+              <td style="padding: 8px; font-weight: 600; color: #22C55E;">${s.email}</td>
+            </tr>
+        `;
+      }
+      emailHtml += `</table></div>`;
+    }
+
     emailHtml += `
         <p style="color: #52525B; font-size: 11px; margin-top: 24px;">
           <a href="https://growth.10am.pro/admin/churn" style="color: #22C55E;">Open Churn Control →</a>
         </p>
       </div>
     `;
+
+    // Build subject line
+    const subjectParts = [];
+    if (newlyExpired.length > 0) subjectParts.push(`${newlyExpired.length} to remove`);
+    if (upcomingExpiry.length > 0) subjectParts.push(`${upcomingExpiry.length} expiring soon`);
+    if (uniqueResubs.length > 0) subjectParts.push(`${uniqueResubs.length} re-subbed 🎉`);
+    const subjectEmoji = uniqueResubs.length > 0 && newlyExpired.length === 0 ? "🎉" : "🚨";
+    const subject = `${subjectEmoji} Churn Alert: ${subjectParts.join(", ")}`;
 
     // Send email via Resend
     if (RESEND_KEY) {
@@ -278,7 +337,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           from: "10AMPRO Churn Control <onboarding@resend.dev>",
           to: ["info@10am.pro"],
-          subject: `🚨 Churn Alert: ${newlyExpired.length} to remove${upcomingExpiry.length > 0 ? `, ${upcomingExpiry.length} expiring soon` : ""}`,
+          subject,
           html: emailHtml,
         }),
       });
@@ -289,6 +348,7 @@ export default async function handler(req, res) {
         message: "Email sent",
         newlyExpired: newlyExpired.length,
         upcomingExpiry: upcomingExpiry.length,
+        newResubs: uniqueResubs.length,
         emailResult,
       });
     } else {
