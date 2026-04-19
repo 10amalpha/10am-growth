@@ -1,6 +1,6 @@
 # 10AMPRO Growth Dashboard — Status & Update Playbook
 
-**Last updated:** April 3, 2026
+**Last updated:** April 19, 2026
 **Repo:** `10amalpha/10am-growth`
 **Live:** https://10am-growth.vercel.app/ (also https://growth.10am.pro/)
 
@@ -138,66 +138,109 @@ Alpha 63 (76, $15) | Alpha 64 (24, $15) | Ep200 Fireside (163, $40) | Almuerzo (
 
 ---
 
-## Churn Control System (added April 13, 2026)
+## Churn Control System (added April 13, 2026, updated April 19, 2026)
 
 ### Overview
 
-Automated subscriber cleanup tool for the 10am Alpha WhatsApp chat. Live at:
+Automated subscriber cleanup tool for the 10am Alpha WhatsApp chat. Connects directly to Stripe API to track who has canceled and when their paid access expires. Sends daily email alerts when action is needed.
+
 - **Dashboard:** https://growth.10am.pro/admin/churn (password: `elgordo`)
-- **API:** `/api/churn` — Stripe subscriber status (password-gated)
-- **Removed tracking:** `/api/churn-removed` — Supabase persistence for checked-off members
-- **Daily cron:** `/api/cron/churn-notify` — email alerts for newly expired subs
+- **API:** `/api/churn` — Stripe subscriber status (password-gated via `?pass=elgordo`)
+- **Removed tracking:** `/api/churn-removed` — Supabase read/write for checked-off members
+- **Daily cron:** `/api/cron/churn-notify` — email alerts (Vercel Cron + Resend)
+- **Manual cron test:** `growth.10am.pro/api/cron/churn-notify?pass=elgordo`
 
 ### How it works
 
-1. Fetches all canceled + past_due subscriptions from Stripe API (pinned to version `2023-10-16`)
-2. Cross-references active subscriptions to detect re-subscribers
-3. **Monthly plans ($40/mo):** access expires 30 days after cancellation → moves to "TO REMOVE"
-4. **Annual plans ($400/yr):** access expires at Stripe `current_period_end` (full year honored) → "STILL ACTIVE" until then
-5. Checked-off members saved to Supabase `churn_removed` table (persists across devices)
+1. Fetches all canceled + past_due subscriptions from Stripe API (pinned to version `2023-10-16` — required because the Stripe account was created in 2013 and the default API version doesn't support `status=canceled`)
+2. Cross-references active subscriptions to detect re-subscribers (people who canceled then re-subbed are safe)
+3. **Monthly plans ($40/mo):** access expires at Stripe's `current_period_end` date. Once that date passes → moves to "TO REMOVE"
+4. **Annual plans ($400/yr):** access expires at Stripe `current_period_end` (full year honored). Shows in "STILL ACTIVE" with countdown until period expires
+5. Checked-off members saved to Supabase `churn_removed` table (persists across devices/sessions)
+6. Cron email cross-references `churn_removed` table — only reports expired subs you haven't checked off yet. Will keep emailing daily until you check them off on the dashboard
 
-### Dashboard tabs
+### Dashboard tabs (5 tabs)
 
 | Tab | What | Color |
 |---|---|---|
-| REMOVE | Canceled 30+ days (monthly) or period expired (annual), not re-subbed | Red |
-| STILL ACTIVE | Annual subs within prepaid period, shows "Xd left" countdown | Gold |
-| RECENT | Canceled < 30 days, grace period | Yellow |
-| PAST DUE | Payment failed, sub still technically active | Orange |
-| RE-SUBBED | Canceled then came back — safe, leave in chat | Green |
+| REMOVE | `periodEnd` has passed AND not re-subbed AND not checked off | Red |
+| STILL ACTIVE | Annual subs ($400/yr) within prepaid period, shows "Xd left" countdown | Gold |
+| RECENT | Canceled but `periodEnd` hasn't passed yet (grace period, don't remove yet) | Yellow |
+| PAST DUE | Payment failed, sub still technically active (Stripe retrying) | Orange |
+| RE-SUBBED | Canceled then came back with a new active subscription — safe, leave in chat | Green |
+
+### Dashboard features
+
+- **Password gate:** `elgordo` — saved in `sessionStorage`, auto-restores on page load
+- **Checkboxes (REMOVE tab only):** Check off members as you remove them from WhatsApp. Saved to Supabase `churn_removed` table
+- **Pending counter:** Shows "X pending removal" in header — count of unchecked items in REMOVE tab
+- **Search:** Filter by email or name across any tab
+- **Plan column:** Shows ANNUAL or MONTHLY pill (gold/red)
+- **Days column:** Shows "Xd ago" for monthly, "Xd left" or "expired" for annual
+- **Mobile responsive:** `useIsMobile()` hook, responsive grid
 
 ### Email notifications (Vercel Cron)
 
 - **Schedule:** Daily at 8:00 AM COT (13:00 UTC) — `vercel.json` cron: `"0 13 * * *"`
+- **Vercel Cron Settings:** Registered and enabled (Vercel → 10am-growth → Settings → Cron Jobs). Can be manually triggered via "Run" button there
 - **Recipients:** hernanjaramillo@gmail.com + info@10am.pro
-- **Triggers ONLY when:** a monthly sub hits 30-day mark OR an annual sub's period_end passes OR an annual sub expires within 7 days
-- **Silent on quiet days** — no email sent if nothing to report
-- **Email service:** Resend (free tier, 100/day)
-- **Manual test:** `growth.10am.pro/api/cron/churn-notify?pass=elgordo`
+- **Email service:** Resend (free tier, 100/day). API key stored as `RESEND_API_KEY` env var
+- **From address:** `10AMPRO Churn Control <onboarding@resend.dev>` (Resend free tier default)
+- **How it decides to send:** Cross-references Stripe expired subs against `churn_removed` Supabase table. If ANY sub has expired access AND is NOT checked off → sends email. Also sends 7-day heads-up for annual subs and 3-day heads-up for monthly subs about to expire
+- **Silent when nothing to do:** No email if all expired subs are already checked off and nothing is expiring soon
+- **Will keep emailing:** If you don't check someone off on the dashboard, the cron will report them again the next day. This is intentional — it's a reminder to take action
+- **Auth:** Accepts Vercel's `Authorization: Bearer CRON_SECRET` header OR `?pass=elgordo` for manual testing. If `CRON_SECRET` env var is not set, the cron endpoint is open (Vercel invokes it anyway)
+
+### Known issues & fixes applied
+
+1. **Stripe API version:** Account from 2013 — must pin `Stripe-Version: 2023-10-16` header on all API calls or `status=canceled` returns error
+2. **Session race condition (fixed Apr 16):** Two `useEffect` hooks caused password to be empty on auto-fetch. Fixed by combining into single useEffect that reads `sessionStorage` and passes value directly to `fetchChurn()`
+3. **48-hour detection window (fixed Apr 19):** Original cron used a narrow 48h window to detect "newly expired" subs, which missed expirations if cron didn't fire or window passed. Now uses `churn_removed` table cross-reference — catches everything regardless of timing
+4. **Cron not firing (investigated Apr 19):** Vercel cron was registered but showed only 1 hit in 7 days. Hobby plan crons have a "flexible 1-hour window" and may not fire reliably every day. The `churn_removed` cross-reference approach makes this resilient — even if cron misses a day, the next run catches up
 
 ### Environment variables (Vercel: 10am-growth)
 
-| Key | Purpose |
-|---|---|
-| `STRIPE_SECRET_KEY` | Stripe API (server-side only, never client-exposed) |
-| `RESEND_API_KEY` | Email notifications via Resend |
-| `CRON_SECRET` | Vercel cron auth (optional, falls back to admin pass) |
+| Key | Purpose | Required |
+|---|---|---|
+| `STRIPE_SECRET_KEY` | Stripe API — `sk_live_...` (server-side only, never client-exposed) | Yes |
+| `RESEND_API_KEY` | Email notifications via Resend — `re_...` | Yes (for emails) |
+| `CRON_SECRET` | Vercel cron auth header (optional, falls back to admin pass) | No |
 
 ### Supabase table: `churn_removed`
 
-- **Columns:** `email` (PK), `removed_at` (timestamptz), `removed_by` (text)
-- **RLS:** Open for all (policy: `USING (true) WITH CHECK (true)`)
-- **Purpose:** Persist checkbox state so removed members don't reappear as pending
+- **Columns:** `email` (TEXT, PK), `removed_at` (TIMESTAMPTZ, default NOW()), `removed_by` (TEXT, default 'hernan')
+- **RLS:** Enabled. Policy: `USING (true) WITH CHECK (true)` (open for all roles)
+- **Purpose:** Persist checkbox state so removed members don't reappear as pending. Also used by cron to know what's already been actioned
+- **Read by:** `/api/churn-removed` (GET) and `/api/cron/churn-notify.js`
+- **Written by:** `/api/churn-removed` (POST) when user checks/unchecks on dashboard
 
-### Files added
+### Files
 
 | File | Purpose |
 |---|---|
-| `api/churn.js` | Stripe subscriber status API (all tabs data) |
-| `api/churn-removed.js` | Supabase read/write for removed checkmarks |
-| `api/cron/churn-notify.js` | Daily email notification cron job |
-| `src/app/admin/churn/page.js` | Frontend dashboard (password-gated) |
-| `vercel.json` | Cron schedule config |
+| `api/churn.js` | Stripe subscriber status API — returns all 5 tabs of data (password-gated) |
+| `api/churn-removed.js` | Supabase CRUD for removed checkmarks (GET list, POST toggle) |
+| `api/cron/churn-notify.js` | Daily email cron — checks Stripe, cross-refs churn_removed, sends via Resend |
+| `src/app/admin/churn/page.js` | Frontend dashboard — password gate, 5 tabs, checkboxes, search, mobile responsive |
+| `vercel.json` | Cron schedule: `"0 13 * * *"` (8 AM COT daily) |
+
+### Stripe API details
+
+- **Key location:** Vercel env var `STRIPE_SECRET_KEY`
+- **API version pinned:** `2023-10-16` (via `Stripe-Version` header on every request)
+- **Endpoints used:**
+  - `GET /v1/subscriptions?status=canceled&expand[]=data.customer` (paginated, 100/page)
+  - `GET /v1/subscriptions?status=past_due&expand[]=data.customer`
+  - `GET /v1/subscriptions?status=active&expand[]=data.customer` (for re-sub detection)
+- **Key fields used:** `customer.email`, `canceled_at`, `current_period_end`, `items.data[0].price.unit_amount`, `currency`
+- **Annual detection:** `unit_amount >= 30000` ($300+ = annual plan)
+
+### Workflow for Hernán
+
+1. **Monthly:** Open `growth.10am.pro/admin/churn`, work through REMOVE tab, check off members as you remove them from Alpha WhatsApp
+2. **Daily (automated):** Cron runs at 8 AM COT, emails you if there's anyone to remove that you haven't checked off
+3. **When Substack sends "payment failed" email:** The person will show up in RECENT tab. Wait for their `periodEnd` to pass — then they move to REMOVE and the cron emails you
+4. **Annual subs:** They stay in STILL ACTIVE with a countdown. When the year is up, they move to REMOVE automatically
 
 ---
 
