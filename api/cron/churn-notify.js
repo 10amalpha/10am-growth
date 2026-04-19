@@ -277,7 +277,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           from: "10AMPRO Churn Control <onboarding@resend.dev>",
-          to: ["hernanjaramillo@gmail.com", "info@10am.pro"],
+          to: ["info@10am.pro"],
           subject: `🚨 Churn Alert: ${newlyExpired.length} to remove${upcomingExpiry.length > 0 ? `, ${upcomingExpiry.length} expiring soon` : ""}`,
           html: emailHtml,
         }),
