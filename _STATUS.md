@@ -186,8 +186,8 @@ Automated subscriber cleanup tool for the 10am Alpha WhatsApp chat. Connects dir
 - **Recipients:** info@10am.pro only (Resend free tier limitation — `onboarding@resend.dev` sender can only email the account owner. To add hernanjaramillo@gmail.com, verify `10am.pro` domain at resend.com/domains and change `from` to `churn@10am.pro`)
 - **Email service:** Resend (free tier, 100/day). API key stored as `RESEND_API_KEY` env var
 - **From address:** `10AMPRO Churn Control <onboarding@resend.dev>` (Resend free tier default — change to `churn@10am.pro` after domain verification)
-- **How it decides to send:** Cross-references Stripe expired subs against `churn_removed` Supabase table. If ANY sub has expired access AND is NOT checked off → sends email. Also sends 7-day heads-up for annual subs and 3-day heads-up for monthly subs about to expire
-- **Silent when nothing to do:** No email if all expired subs are already checked off and nothing is expiring soon
+- **How it decides to send:** Cross-references Stripe expired subs against `churn_removed` Supabase table. If ANY sub has expired access AND is NOT checked off → sends email. Also sends 7-day heads-up for annual subs and 3-day heads-up for monthly subs about to expire. Also detects re-subscribers (someone who canceled and then re-subscribed) and sends a 🎉 alert — only once per re-sub, tracked in `churn_resub_notified` table
+- **Silent when nothing to do:** No email if all expired subs are already checked off, nothing is expiring soon, and no new re-subs
 - **Will keep emailing:** If you don't check someone off on the dashboard, the cron will report them again the next day. This is intentional — it's a reminder to take action
 - **Auth:** Accepts Vercel's `Authorization: Bearer CRON_SECRET` header OR `?pass=elgordo` for manual testing. If `CRON_SECRET` env var is not set, the cron endpoint is open (Vercel invokes it anyway)
 
@@ -205,6 +205,12 @@ Automated subscriber cleanup tool for the 10am Alpha WhatsApp chat. Connects dir
 | `STRIPE_SECRET_KEY` | Stripe API — `sk_live_...` (server-side only, never client-exposed) | Yes |
 | `RESEND_API_KEY` | Email notifications via Resend — `re_...` | Yes (for emails) |
 | `CRON_SECRET` | Vercel cron auth header (optional, falls back to admin pass) | No |
+
+### Supabase table: `churn_resub_notified`
+
+- **Columns:** `email` (TEXT, PK), `notified_at` (TIMESTAMPTZ, default NOW())
+- **RLS:** Enabled. Policy: `USING (true) WITH CHECK (true)`
+- **Purpose:** Track which re-subscribers have already been notified via email. Prevents duplicate alerts — each re-sub only triggers one email
 
 ### Supabase table: `churn_removed`
 
