@@ -97,13 +97,20 @@ export default async function handler(req, res) {
     }
 
     // Process: find newly actionable subs
-    // "Newly expired" = access expired within the last 48 hours (to catch daily cron window)
-    const twoDaysMs = 2 * 24 * 60 * 60 * 1000;
-    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    // Cross-reference with churn_removed table to find un-actioned expired subs
+    const { createClient } = await import("@supabase/supabase-js");
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://bzpraigsuwgjgpnclcpd.supabase.co";
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6cHJhaWdzdXdnamdwbmNsY3BkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1Mzk2NDEsImV4cCI6MjA4NTExNTY0MX0.tBtsac6Mq65BiG93MhYtn1KV8iOGpEpVdlD3tqShrzE";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    let removedEmails = new Set();
+    try {
+      const { data: removedData } = await supabase.from("churn_removed").select("email");
+      if (removedData) removedData.forEach(r => removedEmails.add(r.email.toLowerCase()));
+    } catch {}
 
     const newlyExpired = [];
-    const upcomingExpiry = []; // Annual subs expiring within 7 days
-    const pendingRemoval = []; // All monthly subs past 30 days
+    const upcomingExpiry = [];
 
     for (const sub of allCanceled) {
       const customer =
@@ -126,25 +133,18 @@ export default async function handler(req, res) {
         : null;
       if (!canceledAt) continue;
 
-      const daysSinceCancel = Math.floor(
-        (now - canceledAt.getTime()) / (1000 * 60 * 60 * 24)
-      );
+      const periodEnd = sub.current_period_end
+        ? new Date(sub.current_period_end * 1000)
+        : null;
 
       if (isAnnual) {
-        const periodEnd = sub.current_period_end
-          ? new Date(sub.current_period_end * 1000)
-          : null;
         if (!periodEnd) continue;
-
         const daysUntilExpiry = Math.ceil(
           (periodEnd.getTime() - now) / (1000 * 60 * 60 * 24)
         );
 
-        // Expired within last 48h
-        if (
-          periodEnd.getTime() < now &&
-          now - periodEnd.getTime() < twoDaysMs
-        ) {
+        // Annual expired + not checked off = needs action
+        if (periodEnd.getTime() < now && !removedEmails.has(email.toLowerCase())) {
           newlyExpired.push({
             email,
             plan: "Annual ($" + amount + ")",
@@ -163,15 +163,14 @@ export default async function handler(req, res) {
           });
         }
       } else {
-        // Monthly: use periodEnd (when their paid access actually expires)
-        const periodEnd = sub.current_period_end
-          ? new Date(sub.current_period_end * 1000)
-          : null;
-
+        // Monthly: check periodEnd
         if (periodEnd) {
-          const periodExpiredMs = now - periodEnd.getTime();
-          // Expired within last 48h
-          if (periodEnd.getTime() < now && periodExpiredMs < twoDaysMs) {
+          const daysUntilExpiry = Math.ceil(
+            (periodEnd.getTime() - now) / (1000 * 60 * 60 * 24)
+          );
+
+          // Expired + not checked off = needs action
+          if (periodEnd.getTime() < now && !removedEmails.has(email.toLowerCase())) {
             newlyExpired.push({
               email,
               plan: "Monthly ($" + amount + ")",
@@ -179,26 +178,14 @@ export default async function handler(req, res) {
               expiredAt: periodEnd.toISOString().split("T")[0],
             });
           }
-          // Expiring within 3 days (heads up for monthly)
-          const daysUntilExpiry = Math.ceil(
-            (periodEnd.getTime() - now) / (1000 * 60 * 60 * 24)
-          );
+
+          // Expiring within 3 days
           if (daysUntilExpiry > 0 && daysUntilExpiry <= 3) {
             upcomingExpiry.push({
               email,
               plan: "Monthly ($" + amount + ")",
               daysLeft: daysUntilExpiry,
               expiresAt: periodEnd.toISOString().split("T")[0],
-            });
-          }
-        } else {
-          // Fallback: no periodEnd, use 30-day rule
-          if (daysSinceCancel >= 30 && daysSinceCancel <= 32) {
-            newlyExpired.push({
-              email,
-              plan: "Monthly ($" + amount + ")",
-              canceledAt: canceledAt.toISOString().split("T")[0],
-              expiredAt: canceledAt.toISOString().split("T")[0],
             });
           }
         }
