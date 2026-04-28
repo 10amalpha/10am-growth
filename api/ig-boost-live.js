@@ -89,10 +89,14 @@ export default async function handler(req, res) {
       const engagement_rate = ((likes + comments + ins.shares + ins.saves) / views) * 100;
 
       const score =
-        (follows_per_1k * 3) +
+        ((follows_per_1k * 3) +
         (saves_per_1k * 2) +
         (profile_visits_per_1k * 1.5) +
-        (engagement_rate * 10);
+        (engagement_rate * 10)) *
+        // Freshness multiplier: <24h = 1.5x, <72h = 1.25x, older = 1x
+        (((Date.now() - new Date(reel.timestamp).getTime()) / 3600000) < 24 ? 1.5
+         : ((Date.now() - new Date(reel.timestamp).getTime()) / 3600000) < 72 ? 1.25
+         : 1);
 
       return {
         media_id: reel.id,
