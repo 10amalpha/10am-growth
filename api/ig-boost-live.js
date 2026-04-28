@@ -37,6 +37,23 @@ export default async function handler(req, res) {
       return res.status(200).json({ recommendations: [], computed_at: new Date().toISOString(), count: 0 });
     }
 
+    // RAW MODE: return all reels with timestamps, no filters, no scoring
+    if (req.query.raw === "1") {
+      return res.status(200).json({
+        now: new Date().toISOString(),
+        count: reels.length,
+        reels: reels.map(r => ({
+          timestamp: r.timestamp,
+          permalink: r.permalink,
+          caption: (r.caption || "").slice(0, 150),
+          product_type: r.media_product_type,
+          media_type: r.media_type,
+        })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
+      });
+    }
+
+
+
     // ── 3. Batch insights — Pass 1: safe metrics (views,reach,shares,saved) ──
     const insightsMap = {};
     reels.forEach(r => { insightsMap[r.id] = { views: 0, reach: 0, shares: 0, saves: 0, follows: 0, profile_visits: 0 }; });
