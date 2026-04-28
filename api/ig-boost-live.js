@@ -37,23 +37,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ recommendations: [], computed_at: new Date().toISOString(), count: 0 });
     }
 
-    // RAW MODE: return all reels with timestamps, no filters, no scoring
-    if (req.query.raw === "1") {
-      return res.status(200).json({
-        now: new Date().toISOString(),
-        count: reels.length,
-        reels: reels.map(r => ({
-          timestamp: r.timestamp,
-          permalink: r.permalink,
-          caption: (r.caption || "").slice(0, 150),
-          product_type: r.media_product_type,
-          media_type: r.media_type,
-        })).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
-      });
-    }
-
-
-
     // ── 3. Batch insights — Pass 1: safe metrics (views,reach,shares,saved) ──
     const insightsMap = {};
     reels.forEach(r => { insightsMap[r.id] = { views: 0, reach: 0, shares: 0, saves: 0, follows: 0, profile_visits: 0 }; });
@@ -134,19 +117,50 @@ export default async function handler(req, res) {
       };
     });
 
+    // RAW MODE: enriched with views/likes/saves, sorted newest first, no filters
+    if (req.query.raw === "1") {
+      return res.status(200).json({
+        now: new Date().toISOString(),
+        count: clips.length,
+        reels: [...clips]
+          .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
+          .map(c => ({
+            timestamp: c.published_at,
+            permalink: c.permalink,
+            caption: (c.caption || "").slice(0, 150),
+            views: c.views,
+            reach: c.reach,
+            likes: c.likes,
+            comments: c.comments,
+            shares: c.shares,
+            saves: c.saves,
+            engagement_rate: c.engagement_rate,
+          })),
+      });
+    }
+
     // ── 8. Exclude already-viral (views > 3x median) ──
     const sortedViews = [...clips].map(c => c.views).sort((a, b) => a - b);
     const median = sortedViews.length ? sortedViews[Math.floor(sortedViews.length / 2)] : 0;
     const viralThreshold = median * 3;
 
     // ── 9. Rank + reasoning ──
+    // Age-aware threshold: fresh reels (<72h) bypass the 500-view floor
+    // since they haven't had time to accumulate views yet
+    const FRESH_HOURS = 72;
+    const now = Date.now();
     const ranked = clips
+      .map(c => ({
+        ...c,
+        age_hours: (now - new Date(c.published_at).getTime()) / 3600000,
+      }))
       .filter(c => viralThreshold === 0 || c.views <= viralThreshold)
-      .filter(c => c.views >= 500) // Minimum baseline — need signal
+      .filter(c => c.age_hours < FRESH_HOURS || c.views >= 500)
       .sort((a, b) => b.score - a.score)
       .slice(0, 10)
       .map((c, i) => {
         const reasons = [];
+        if (c.age_hours < FRESH_HOURS) reasons.push(`🆕 ${c.age_hours.toFixed(0)}h — recién publicado`);
         if (c.follows_per_1k >= 2) reasons.push(`${c.follows_per_1k.toFixed(1)} follows/1K — alta intención de marca`);
         else if (c.follows_per_1k >= 1) reasons.push(`${c.follows_per_1k.toFixed(1)} follows/1K — buena intención`);
         if (c.engagement_rate >= 5) reasons.push(`ER ${c.engagement_rate.toFixed(1)}% — Meta amplifica más`);
@@ -158,6 +172,7 @@ export default async function handler(req, res) {
         return {
           ...c,
           rank: i + 1,
+          is_fresh: c.age_hours < FRESH_HOURS,
           reasoning: reasons.slice(0, 2).join(" · "),
         };
       });
