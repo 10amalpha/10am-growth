@@ -272,29 +272,41 @@ Started Apr 18 as a cron-based architecture (daily precompute → Supabase cache
 | `supabase-ig-boost-migration-1.sql` | Adds baseline metric columns + `paid_subs_attributed`, `mrr_attributed` |
 | `supabase-ig-boost-alerts-schema.sql` | `ig_boost_alerts_sent` table — anti-spam cooldown for email alerts |
 
-### Scoring formula (v1)
+### Scoring formula (v2 — Apr 28 2026)
 
 ```
-score = (follows_per_1k × 3) + (saves_per_1k × 2) + (profile_visits_per_1k × 1.5) + (engagement_rate × 10)
+score = ((shares_per_1k × 4) + (saves_per_1k × 3) + (comments_per_1k × 2) + (engagement_rate × 8))
+        × freshness_multiplier
+        
+freshness_multiplier = 1.5 if reel < 24h old, 1.25 if < 72h, else 1.0
 ```
 
-**Why these signals:**
-- **Follows/1K**: strongest — follow means user went to profile (one tap from bio link)
-- **Saves/1K**: depth signal — reference content the user wants to return to
-- **Profile visits/1K**: bio-link proximity (not always returned by Meta API)
-- **ER**: Meta's paid-delivery amplifier — higher ER = cheaper reach on boost
+**Why these signals (aligned with the boost → URL → email funnel):**
+- **Shares/1K (×4)** — strongest leave-platform intent. Closest organic behavior to clicking out of IG to a Substack URL.
+- **Saves/1K (×3)** — return-intent / depth. User wants to come back to this content, signals willingness to engage further.
+- **Comments/1K (×2)** — active attention, but ambiguous direction. Useful but not over-weighted.
+- **ER (×8)** — Meta's paid algorithm uses ER to set CPM. Higher ER = cheaper boost = more emails per $. This is a *cost* signal, not a conversion signal.
+- **Freshness multiplier** — recent reels still have algorithmic momentum on Meta's organic feed. Boost capitalizes on that signal.
+
+**Filter chain:**
+- Reels only (`media_product_type === "REELS"` OR `media_type === "VIDEO"`)
+- Published within last 28 days
+- Views ≤ 3× median (excludes already-burned virals — boosting an org-viral wastes $$ delivering to lower-quality cohorts)
+- Views ≥ 500 OR age < 72h (fresh reels bypass view floor since they haven't accumulated views yet)
+
+**Why v1 (Apr 18-19) was replaced:**
+- v1 used `follows_per_1k × 3` and `profile_visits_per_1k × 1.5` — both metrics return 0 for every reel because Meta token doesn't have `instagram_manage_insights` scope on those specific metrics
+- 4.5/16.5 score weight points were dead → score collapsed to mostly ER
+- Also wrong funnel: follows/profile visits measure "want more of you on IG" (audience growth), not "will click out and give email"
+- v2 drops zero-returning metrics, adds comments (was ignored), reweights to favor click-out signals
+
+**Hypothesis vs ground truth:** v2 is an unproven hypothesis. The next 3-5 boosts will tell us if the weights are right by regressing actual `$/email` against score components. Phase 2 will auto-tune.
 
 **Meta API quirks discovered:**
 - `video_duration` field returns 400 on v22.0 — duration is null for all clips, filter relaxed to allow unknown duration
 - `views` sometimes comes as 0 — fallback chain: `views` → `ig_reels_aggregated_all_plays_count` → `reach`
-- `follows` and `profile_visits` not always returned — handled gracefully (defaults to 0)
+- `follows` and `profile_visits` not always returned — handled gracefully (defaults to 0); also why v1 formula was scrapped
 - Must use Batch API (50 reels/request) to avoid timeout on `/insights` per-reel
-
-**Filters applied:**
-- Reels only (`media_product_type === "REELS"` OR `media_type === "VIDEO"`)
-- Published within last 28 days
-- Views ≥ 500 (minimum baseline for signal)
-- Views ≤ 3× median of eligible clips (excludes already-burned virals)
 
 ### UI architecture — CAC-first design (Apr 19)
 
