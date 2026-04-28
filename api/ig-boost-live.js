@@ -88,11 +88,19 @@ export default async function handler(req, res) {
       const comments = reel.comments_count || 0;
       const engagement_rate = ((likes + comments + ins.shares + ins.saves) / views) * 100;
 
+      const shares_per_1k = (ins.shares / views) * 1000;
+      const comments_per_1k = (comments / views) * 1000;
+
+      // Score = email-conversion intent signals (boost → URL → email is the goal)
+      // Shares: leave-platform intent (closest to clicking out)
+      // Saves: return-intent / depth
+      // Comments: active attention
+      // ER: Meta amplifier — directly lowers boost CPM
       const score =
-        ((follows_per_1k * 3) +
-        (saves_per_1k * 2) +
-        (profile_visits_per_1k * 1.5) +
-        (engagement_rate * 10)) *
+        ((shares_per_1k * 4) +
+        (saves_per_1k * 3) +
+        (comments_per_1k * 2) +
+        (engagement_rate * 8)) *
         // Freshness multiplier: <24h = 1.5x, <72h = 1.25x, older = 1x
         (((Date.now() - new Date(reel.timestamp).getTime()) / 3600000) < 24 ? 1.5
          : ((Date.now() - new Date(reel.timestamp).getTime()) / 3600000) < 72 ? 1.25
@@ -115,6 +123,8 @@ export default async function handler(req, res) {
         profile_visits: ins.profile_visits,
         follows_per_1k: Number(follows_per_1k.toFixed(2)),
         saves_per_1k: Number(saves_per_1k.toFixed(2)),
+        shares_per_1k: Number(shares_per_1k.toFixed(2)),
+        comments_per_1k: Number(comments_per_1k.toFixed(2)),
         profile_visits_per_1k: Number(profile_visits_per_1k.toFixed(2)),
         engagement_rate: Number(engagement_rate.toFixed(2)),
         score: Number(score.toFixed(2)),
@@ -165,12 +175,12 @@ export default async function handler(req, res) {
       .map((c, i) => {
         const reasons = [];
         if (c.age_hours < FRESH_HOURS) reasons.push(`🆕 ${c.age_hours.toFixed(0)}h — recién publicado`);
-        if (c.follows_per_1k >= 2) reasons.push(`${c.follows_per_1k.toFixed(1)} follows/1K — alta intención de marca`);
-        else if (c.follows_per_1k >= 1) reasons.push(`${c.follows_per_1k.toFixed(1)} follows/1K — buena intención`);
+        if (c.shares_per_1k >= 8) reasons.push(`${c.shares_per_1k.toFixed(1)} shares/1K — alta intención de salir de IG`);
+        else if (c.shares_per_1k >= 4) reasons.push(`${c.shares_per_1k.toFixed(1)} shares/1K — buena intención de compartir`);
         if (c.engagement_rate >= 5) reasons.push(`ER ${c.engagement_rate.toFixed(1)}% — Meta amplifica más`);
         else if (c.engagement_rate >= 3.5) reasons.push(`ER ${c.engagement_rate.toFixed(1)}% — engagement sólido`);
         if (c.saves_per_1k >= 3) reasons.push(`${c.saves_per_1k.toFixed(1)} saves/1K — contenido de referencia`);
-        if (c.profile_visits_per_1k >= 5) reasons.push(`${c.profile_visits_per_1k.toFixed(1)} profile visits/1K`);
+        if (c.comments_per_1k >= 2) reasons.push(`${c.comments_per_1k.toFixed(1)} comments/1K — atención activa`);
         if (reasons.length === 0) reasons.push(`Score compuesto ${c.score.toFixed(1)}`);
         
         return {
