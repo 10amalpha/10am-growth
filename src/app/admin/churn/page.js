@@ -72,7 +72,7 @@ export default function ChurnPage() {
 
   const fetchGumroad = async (p) => {
     try {
-      const resp = await fetch(`/api/gumroad-cleanup?pass=${encodeURIComponent(p)}`);
+      const resp = await fetch(`/api/churn-removed?table=gumroad&pass=${encodeURIComponent(p)}`);
       if (resp.ok) {
         const d = await resp.json();
         setGumroadData(d);
@@ -93,7 +93,7 @@ export default function ChurnPage() {
       setGumroadData({ ...gumroadData, entries: next, pending, done });
     }
     try {
-      await fetch(`/api/gumroad-cleanup?pass=${encodeURIComponent(pass)}`, {
+      await fetch(`/api/churn-removed?table=gumroad&pass=${encodeURIComponent(pass)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
