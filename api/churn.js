@@ -162,6 +162,11 @@ export default async function handler(req, res) {
       const resubbed = activeEmails.has(email.toLowerCase());
       const amountNum = parseFloat(amount);
 
+      // Source detection: Substack subs carry priceMetadata.substack === "yes"
+      // Everything else (Gumroad, direct, etc.) falls into "OTHER"
+      const priceMeta = sub.items?.data?.[0]?.price?.metadata || {};
+      const source = priceMeta.substack === "yes" ? "substack" : "gumroad";
+
       // Annual plan ($400/yr): access lasts until current_period_end
       // Monthly plan ($40/mo): access also lasts until current_period_end
       // Stripe sets current_period_end to when the prepaid period expires
@@ -180,6 +185,7 @@ export default async function handler(req, res) {
         email,
         name,
         status,
+        source,
         canceledAt: canceledAt ? canceledAt.toISOString() : null,
         daysSinceCancel,
         accessExpired,
@@ -200,30 +206,6 @@ export default async function handler(req, res) {
       (a, b) => (b.daysSinceCancel || 0) - (a.daysSinceCancel || 0)
     );
 
-    // Debug mode: dump raw signals to identify Gumroad vs Substack subs
-    if (req.query.debug === "1") {
-      const sample = [...allCanceled, ...allPastDue].slice(0, 30).map((s) => {
-        const cust = typeof s.customer === "object" ? s.customer : null;
-        const item = s.items?.data?.[0];
-        return {
-          email: cust?.email,
-          subId: s.id,
-          subMetadata: s.metadata || {},
-          custMetadata: cust?.metadata || {},
-          custDescription: cust?.description || null,
-          priceNickname: item?.price?.nickname || null,
-          priceProduct: item?.price?.product || null,
-          priceMetadata: item?.price?.metadata || {},
-          unitAmount: item?.price?.unit_amount,
-          interval: item?.price?.recurring?.interval,
-          collectionMethod: s.collection_method,
-          appFeesAccount: s.application || null,
-          source: s.source || null,
-        };
-      });
-      return res.status(200).json({ debug: true, count: sample.length, sample });
-    }
-
     // Summary
     const toRemove = all.filter((s) => s.accessExpired && !s.resubbed);
     const stillActive = all.filter((s) => !s.accessExpired && !s.resubbed && s.isAnnual);
@@ -241,6 +223,10 @@ export default async function handler(req, res) {
         stillActive: stillActive.length,
         resubbed: resubbed.length,
         recentCancels: recentCancels.length,
+        bySource: {
+          substack: all.filter((s) => s.source === "substack").length,
+          gumroad: all.filter((s) => s.source === "gumroad").length,
+        },
       },
       toRemove,
       stillActive,
