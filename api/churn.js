@@ -200,6 +200,30 @@ export default async function handler(req, res) {
       (a, b) => (b.daysSinceCancel || 0) - (a.daysSinceCancel || 0)
     );
 
+    // Debug mode: dump raw signals to identify Gumroad vs Substack subs
+    if (req.query.debug === "1") {
+      const sample = [...allCanceled, ...allPastDue].slice(0, 30).map((s) => {
+        const cust = typeof s.customer === "object" ? s.customer : null;
+        const item = s.items?.data?.[0];
+        return {
+          email: cust?.email,
+          subId: s.id,
+          subMetadata: s.metadata || {},
+          custMetadata: cust?.metadata || {},
+          custDescription: cust?.description || null,
+          priceNickname: item?.price?.nickname || null,
+          priceProduct: item?.price?.product || null,
+          priceMetadata: item?.price?.metadata || {},
+          unitAmount: item?.price?.unit_amount,
+          interval: item?.price?.recurring?.interval,
+          collectionMethod: s.collection_method,
+          appFeesAccount: s.application || null,
+          source: s.source || null,
+        };
+      });
+      return res.status(200).json({ debug: true, count: sample.length, sample });
+    }
+
     // Summary
     const toRemove = all.filter((s) => s.accessExpired && !s.resubbed);
     const stillActive = all.filter((s) => !s.accessExpired && !s.resubbed && s.isAnnual);
