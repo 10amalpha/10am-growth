@@ -13,6 +13,8 @@ export default function ChurnPage() {
   const [removed, setRemoved] = useState({});
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [gumroadData, setGumroadData] = useState(null);
+  const [gumroadHideDone, setGumroadHideDone] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -68,6 +70,43 @@ export default function ChurnPage() {
     }
   };
 
+  const fetchGumroad = async (p) => {
+    try {
+      const resp = await fetch(`/api/gumroad-cleanup?pass=${encodeURIComponent(p)}`);
+      if (resp.ok) {
+        const d = await resp.json();
+        setGumroadData(d);
+      }
+    } catch {}
+  };
+
+  const toggleGumroad = async (email, currentlyDone) => {
+    // Optimistic
+    if (gumroadData?.entries) {
+      const next = gumroadData.entries.map((r) =>
+        r.email === email
+          ? { ...r, removed_at: currentlyDone ? null : new Date().toISOString() }
+          : r
+      );
+      const pending = next.filter((r) => !r.removed_at).length;
+      const done = next.filter((r) => !!r.removed_at).length;
+      setGumroadData({ ...gumroadData, entries: next, pending, done });
+    }
+    try {
+      await fetch(`/api/gumroad-cleanup?pass=${encodeURIComponent(pass)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          action: currentlyDone ? "uncheck" : "check",
+          pass,
+        }),
+      });
+    } catch {
+      fetchGumroad(pass);
+    }
+  };
+
   const fetchChurn = async (p) => {
     setLoading(true);
     setError(null);
@@ -108,6 +147,7 @@ export default function ChurnPage() {
     { key: "recent", label: "RECENT", count: data?.summary?.recentCancels },
     { key: "past_due", label: "PAST DUE", count: data?.pastDue?.length },
     { key: "resubbed", label: "RE-SUBBED", count: data?.summary?.resubbed },
+    { key: "gumroad", label: "GUMROAD", count: gumroadData?.pending },
   ];
 
   const currentList = useMemo(() => {
@@ -577,7 +617,140 @@ export default function ChurnPage() {
             />
           </div>
 
+          {/* Gumroad cleanup view */}
+          {tab === "gumroad" && (
+            <div style={{ ...s.card, padding: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 16px",
+                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                  flexWrap: "wrap",
+                  gap: 8,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: "#FF90E8",
+                      fontWeight: 700,
+                      letterSpacing: "0.1em",
+                    }}
+                  >
+                    🛒 GUMROAD CLEANUP
+                  </span>
+                  {gumroadData && (
+                    <span style={{ fontSize: 10, color: "#71717A" }}>
+                      {gumroadData.pending} pending · {gumroadData.done} done · {gumroadData.total} total
+                    </span>
+                  )}
+                </div>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 10,
+                    color: "#71717A",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={gumroadHideDone}
+                    onChange={(e) => setGumroadHideDone(e.target.checked)}
+                  />
+                  Hide done
+                </label>
+              </div>
+              <div style={{ overflow: "auto" }}>
+                <table style={s.table}>
+                  <thead>
+                    <tr>
+                      <th style={s.th}>{"✓"}</th>
+                      <th style={s.th}>Email</th>
+                      <th style={s.th}>Expired</th>
+                      {!isMobile && <th style={s.th}>Days ago</th>}
+                      {!isMobile && <th style={s.th}>Removed at</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {!gumroadData && (
+                      <tr>
+                        <td colSpan={5} style={{ ...s.td, textAlign: "center", color: "#71717A", padding: 40 }}>
+                          Loading…
+                        </td>
+                      </tr>
+                    )}
+                    {gumroadData?.entries
+                      ?.filter((r) => {
+                        if (gumroadHideDone && r.removed_at) return false;
+                        if (search.trim()) {
+                          return r.email.toLowerCase().includes(search.toLowerCase());
+                        }
+                        return true;
+                      })
+                      .map((r) => {
+                        const done = !!r.removed_at;
+                        const expDt = new Date(r.expired_date);
+                        const daysAgo = Math.floor((Date.now() - expDt.getTime()) / (1000 * 60 * 60 * 24));
+                        return (
+                          <tr key={r.email} style={{ opacity: done ? 0.4 : 1 }}>
+                            <td style={s.td}>
+                              <div
+                                onClick={() => toggleGumroad(r.email, done)}
+                                style={{
+                                  width: 18,
+                                  height: 18,
+                                  borderRadius: 3,
+                                  border: done ? "1px solid #22C55E" : "1px solid #52525B",
+                                  background: done ? "#22C55E" : "transparent",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "#000",
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {done ? "✓" : ""}
+                              </div>
+                            </td>
+                            <td style={{ ...s.td, textDecoration: done ? "line-through" : "none" }}>
+                              {r.email}
+                            </td>
+                            <td style={{ ...s.td, ...s.dim }}>{r.expired_date}</td>
+                            {!isMobile && (
+                              <td
+                                style={{
+                                  ...s.td,
+                                  fontWeight: 700,
+                                  color: daysAgo > 90 ? "#EF4444" : daysAgo > 30 ? "#F59E0B" : "#71717A",
+                                }}
+                              >
+                                {daysAgo}d
+                              </td>
+                            )}
+                            {!isMobile && (
+                              <td style={{ ...s.td, ...s.dim }}>
+                                {r.removed_at ? new Date(r.removed_at).toLocaleDateString() : "—"}
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* Table */}
+          {tab !== "gumroad" && (
           <div style={{ ...s.card, padding: 0, overflow: "auto" }}>
             <table style={s.table}>
               <thead>
@@ -728,6 +901,7 @@ export default function ChurnPage() {
               </tbody>
             </table>
           </div>
+          )}
 
           {/* Footer */}
           <div
