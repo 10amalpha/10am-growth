@@ -12,6 +12,7 @@ export default function ChurnPage() {
   const [tab, setTab] = useState("remove");
   const [removed, setRemoved] = useState({});
   const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -117,6 +118,9 @@ export default function ChurnPage() {
     else if (tab === "recent") list = data.recentCancels || [];
     else if (tab === "past_due") list = data.pastDue || [];
     else if (tab === "resubbed") list = data.resubbed || [];
+    if (sourceFilter !== "all") {
+      list = list.filter((s) => (s.source || "gumroad") === sourceFilter);
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -126,7 +130,7 @@ export default function ChurnPage() {
       );
     }
     return list;
-  }, [data, tab, search]);
+  }, [data, tab, search, sourceFilter]);
 
   const pendingCount = useMemo(() => {
     if (!data?.toRemove) return 0;
@@ -502,6 +506,63 @@ export default function ChurnPage() {
                 </div>
               ))}
             </div>
+            <div
+              style={{
+                display: "flex",
+                gap: 4,
+                background: "rgba(0,0,0,0.3)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: 4,
+                padding: 3,
+              }}
+            >
+              {[
+                { key: "all", label: "ALL", color: "#71717A" },
+                { key: "substack", label: "SUBSTACK", color: "#FF6719" },
+                { key: "gumroad", label: "GUMROAD", color: "#FF90E8" },
+              ].map((f) => {
+                const active = sourceFilter === f.key;
+                const count =
+                  f.key === "all"
+                    ? data?.summary?.bySource
+                      ? data.summary.bySource.substack +
+                        data.summary.bySource.gumroad
+                      : null
+                    : data?.summary?.bySource?.[f.key] ?? null;
+                return (
+                  <div
+                    key={f.key}
+                    onClick={() => setSourceFilter(f.key)}
+                    style={{
+                      cursor: "pointer",
+                      padding: "5px 9px",
+                      borderRadius: 3,
+                      fontSize: 9,
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      background: active ? f.color : "transparent",
+                      color: active ? "#000" : f.color,
+                      transition: "all 0.15s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    {f.label}
+                    {count != null && (
+                      <span
+                        style={{
+                          fontSize: 8,
+                          opacity: active ? 0.7 : 0.6,
+                        }}
+                      >
+                        {count}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
             <input
               style={{
                 ...s.input,
@@ -524,6 +585,7 @@ export default function ChurnPage() {
                   {tab === "remove" && <th style={s.th}>✓</th>}
                   <th style={s.th}>Email</th>
                   {!isMobile && <th style={s.th}>Name</th>}
+                  <th style={s.th}>Source</th>
                   <th style={s.th}>Plan</th>
                   <th style={s.th}>Canceled</th>
                   <th style={s.th}>{tab === "active" ? "Expires" : "Days"}</th>
@@ -599,6 +661,31 @@ export default function ChurnPage() {
                           {sub.name || "—"}
                         </td>
                       )}
+                      <td style={s.td}>
+                        {(() => {
+                          const src = sub.source || "gumroad";
+                          const cfg =
+                            src === "substack"
+                              ? { bg: "rgba(255,103,25,0.12)", color: "#FF6719", label: "SUBSTACK" }
+                              : { bg: "rgba(255,144,232,0.12)", color: "#FF90E8", label: "GUMROAD" };
+                          return (
+                            <span
+                              style={{
+                                display: "inline-block",
+                                padding: "2px 6px",
+                                borderRadius: 3,
+                                fontSize: 8,
+                                fontWeight: 700,
+                                background: cfg.bg,
+                                color: cfg.color,
+                                letterSpacing: "0.08em",
+                              }}
+                            >
+                              {cfg.label}
+                            </span>
+                          );
+                        })()}
+                      </td>
                       <td style={s.td}>
                         <span style={s.statusPill(sub.isAnnual ? "annual" : sub.status)}>
                           {sub.isAnnual
