@@ -1,6 +1,6 @@
 # 10AMPRO Growth Dashboard — Status & Update Playbook
 
-**Last updated:** April 19, 2026
+**Last updated:** April 28, 2026
 **Repo:** `10amalpha/10am-growth`
 **Live:** https://10am-growth.vercel.app/ (also https://growth.10am.pro/)
 
@@ -344,26 +344,32 @@ The 2 metrics that matter for the business: **$/email** and **$/paid sub**. Ever
 10. After campaign ends: export Substack sources CSV → filter by utm_campaign → click the "Emails captados" field in the tab → type the number → Enter. `$/email` auto-computes
 11. When users convert to paid (via Stripe), click "Paid subs" in the tab → update manually → `$/paid` auto-computes
 
-### Active boost (as of Apr 19 2026)
+### Current boost state (as of Apr 28 2026)
 
-| Field | Value |
-|---|---|
-| Clip | Donald Trump y la teoría del Madmen (11 abr 2026) |
-| Reel | https://www.instagram.com/reel/DXAk65RjSnQ/ |
-| Landing | https://www.10am.pro/p/e204-estados-unidos-en-busca-del |
-| UTM | `e204_usa_abr26` |
-| Budget | $98 ($14/day × 7 days) |
-| End date | 26 Apr 2026 |
-| Baseline | Views 6,916 · Reach 4,684 · Likes 250 · Comments 10 · Shares 66 · Saves 23 · ER 5.05% |
-| Meta ad status | In review as of Apr 19 15:26 UTC |
-| Supabase row ID | 1 |
-| Payment | Visa ****6491 (Tareasplus) |
+**⚠️ NO ACTIVE ADS. Paused since Apr 21. $0 currently spent on Meta.**
 
-**What to track:**
-- Day 1-2: arrives out of review, delivery starts
-- Day 3-4: learning phase ends, CPC stabilizes
-- Day 7 (26 abr): boost ends → export Substack CSV → update `emails_attributed`
-- Day 30+: check Stripe for paid conversions → update `paid_subs_attributed`
+**History — 6 boost attempts logged in `ig_boost_tracking`:**
+
+| ID | Date | Clip | Status | Result |
+|---|---|---|---|---|
+| 1 | Apr 19 | Donald Trump / Madmen (`e204_usa_abr26`) | rejected | Meta political classifier blocked it. $0 spent. |
+| 2 | Apr 19 | Transición energética petróleo (`petroleo_abr26`) | completed | Killed day 3. 2 emails captured. $/email = $21 (4× over target). $98 spent. |
+| 3 | Apr 21 | China vs Japón (`china_japon_abr26`) | active *(stale — should be rejected)* | Duplicate of row 6. |
+| 4 | Apr 21 | China vs Japón (duplicate) | active *(stale — should be rejected)* | Duplicate of row 6. |
+| 5 | Apr 21 | China vs Japón (duplicate) | active *(stale — should be rejected)* | Duplicate of row 6. |
+| 6 | Apr 21 | China vs Japón | rejected | Meta political classifier (named country = political ad). $0 spent. |
+
+**Total real spend:** $98 (only `petroleo_abr26` actually delivered).
+**Total emails captured:** 2.
+**Real $/email so far:** $49 (1 boost only — not statistically meaningful).
+
+**Lessons baked in to v2 formula and political-risk flag:**
+- Avoid clips naming political figures (Trump, Petro, Milei, etc.) — Meta auto-blocks
+- Avoid clips naming countries in geopolitical conflict context — same classifier
+- Topical Substack landing alone isn't enough — `petroleo_abr26` had a perfect match landing and still got $/email $21, suggesting either landing copy or audience targeting needs work too
+
+**Known dirty data to clean up:**
+Rows 3, 4, 5 are duplicate inserts of the same `china_japon_abr26` boost (POST endpoint has no idempotency guard — rapid double-clicks created them). Row 6 has the correct `rejected` status. Action item: PATCH rows 3, 4, 5 to `status='rejected'` matching row 6, or add a UNIQUE constraint on `(media_id, utm_campaign)` and clean up.
 
 ### Benchmarks (target ranges)
 
@@ -451,3 +457,47 @@ Going from pull to push. The tab requires you to remember to check; the cron gua
 5. Always `npx next build` before pushing
 6. Commit incrementally — every step that compiles gets pushed
 7. Retention insights must reference the full stack: Mercados + AMAs + Cerebro + Búnker
+
+---
+
+## Validation Plan — When Hernán Uploads Substack Growth CSV
+
+**Trigger:** Hernán uploads Substack subscriber export with `utm_source`, `utm_campaign`, `utm_medium` columns.
+
+**Process:**
+1. Filter rows where `utm_medium = "boost"`
+2. Group by `utm_campaign` (each campaign = one boost from `ig_boost_tracking`)
+3. JOIN against `ig_boost_tracking.utm_campaign` to get budget + score components
+4. Compute real `$/email` per boost
+5. Regress `$/email` against `shares_per_1k`, `saves_per_1k`, `comments_per_1k`, `engagement_rate`
+6. Compare regression coefficients to v2 weights (4, 3, 2, 8 respectively)
+7. Retune weights if reality diverges meaningfully from formula
+
+**Why this matters:** v2 formula (Apr 28) is a hypothesis. The first 5+ boosts that survive Meta + capture emails are the ground truth that validates or invalidates it. Without this loop, the formula stays unproven indefinitely.
+
+---
+
+## Session Log
+
+### Apr 28, 2026 — IG Boost system audit + v2 formula
+
+**What was wrong:**
+- Dashboard showed stale recommendations (top 3 were 7+ days old)
+- v1 score formula relied on `follows_per_1k` and `profile_visits_per_1k` — both return 0 from this Meta token (permission scope), so 4.5/16.5 score points were dead → score collapsed to mostly ER
+- 4 boosts since Apr 19 — all but one rejected by Meta political classifier
+- STATUS doc claimed "Active boost: Donald Trump / Madmen" — actually paused 9 days prior, never updated
+
+**What was fixed:**
+- v2 score formula: `(shares×4 + saves×3 + comments×2 + ER×8) × freshness_multiplier`
+- Freshness multiplier added: <24h = 1.5×, <72h = 1.25×, else 1× — fresh reels surface in Top 3
+- Reasoning chips updated to mention shares/saves/comments instead of follows/profile_visits
+- STATUS doc now reflects no-active-ads reality + dirty data items
+
+**Hard-won lessons (don't relearn):**
+- **Editing existing API files works on Vercel; adding new files keeps causing build ERROR** (root cause unknown — happened 3x in this session). Workaround: extend existing endpoints with `?raw=1` or `?mode=` query params instead of creating new debug files.
+- **Vercel MCP plugin (5 tools) doesn't expose build logs, cron registration, or settings.** When deploys fail or you need cron status, MCP is blind. Workarounds: (a) Vercel API token in env var + server-side admin endpoint, OR (b) just edit existing endpoints to expose what you need.
+- **`api.vercel.com` is blocked from this container's bash allowlist** — even with a valid Vercel API token, direct curl returns 403. To call Vercel API from Claude, the call must run from a Vercel function (server-side endpoint), not from bash.
+- **Don't blame a filter without checking the data.** I claimed the 500-view filter was hiding fresh reels — but every reel in the dataset had ≥1,124 views. Real cause: top-10-by-score sorting + dead score weights + no freshness boost. Always verify the filter is actually filtering before claiming it.
+- **`follows` and `profile_visits` return 0 for every reel** with current Meta token scope. Don't weight them in any future scoring. If permission ever gets fixed, then reconsider.
+- **POST `/api/ig-boost-tracking` has no idempotency guard** — rapid double-clicks create duplicate rows. Already polluted production data (rows 3, 4, 5 are dupes of `china_japon_abr26`). Fix: UNIQUE constraint on `(media_id, utm_campaign)` or 5-min window check in handler.
+- **Cron handler works correctly when invoked manually** (`?pass=elgordo`) — uncertainty is whether Vercel scheduler is firing it on Mon+Thu schedule. Vercel MCP can't show this; would need API access (blocked) or Vercel Dashboard → Crons tab.
