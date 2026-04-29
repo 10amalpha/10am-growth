@@ -134,6 +134,14 @@ export default async function handler(req, res) {
     const now = Date.now();
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
 
+    // Debug: dump all active emails (for cross-ref against Gumroad CSV)
+    if (req.query.listactive === "1") {
+      return res.status(200).json({
+        count: activeEmails.size,
+        emails: [...activeEmails].sort(),
+      });
+    }
+
     const formatSub = (sub, status) => {
       const customer =
         typeof sub.customer === "object" ? sub.customer : null;
