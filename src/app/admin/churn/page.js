@@ -31,6 +31,7 @@ export default function ChurnPage() {
       setPass(saved);
       setUnlocked(true);
       fetchChurn(saved);
+      fetchGumroad(saved);
     }
   }, []);
 
