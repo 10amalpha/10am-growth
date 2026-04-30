@@ -1,12 +1,12 @@
 # 10AMPRO Growth Dashboard — Status & Update Playbook
 
-**Last updated:** April 28, 2026
+**Last updated:** April 29, 2026
 **Repo:** `10amalpha/10am-growth`
 **Live:** https://10am-growth.vercel.app/ (also https://growth.10am.pro/)
 
 ---
 
-## Dashboard Structure (6 Tabs)
+## Dashboard Structure (6 Tabs + 1)
 
 | Tab | Key | Contents |
 |---|---|---|
@@ -250,6 +250,105 @@ Automated subscriber cleanup tool for the 10am Alpha WhatsApp chat. Connects dir
 
 ---
 
+## 🛒 Gumroad Cleanup System (added April 29, 2026)
+
+### Why it exists
+
+**Empirically confirmed Apr 29:** Gumroad subscriptions do NOT flow into the Stripe account, despite Gumroad being "connected" to Stripe via `acct_2CdwT0BlwpG9wBEhLoxH` in payout settings. Cross-reference test: 1 of 58 canceled-Gumroad emails appeared in Stripe canceled — and that 1 (`juandaospina25@gmail.com`) was a coincidence (user paid both platforms simultaneously, then migrated). The Stripe Connect account on Gumroad is for *payouts*, not subscription mirroring.
+
+**Implication:** `/api/churn` cannot detect Gumroad cancellations. They are completely invisible to the existing Stripe-based churn dashboard.
+
+**Strategic decision (Apr 29):** Sunset Gumroad organically — let it degrade. All new sales go through Substack (every podcast episode + 10am.pro funnel points there). No active migration push. Manage decay manually with the dashboard tab built today.
+
+### Architecture
+
+| Piece | Purpose |
+|---|---|
+| `gumroad_to_remove` (Supabase) | Manual cleanup tracking table — separate from `churn_removed` |
+| `/api/churn-removed?table=gumroad` | Multi-table router on existing endpoint (CRUCIAL: do NOT create new files in `/api/`, see Hard-Won Lessons below) |
+| GUMROAD tab in `/admin/churn/page.js` | Checkbox UI, persists state across sessions, mobile responsive |
+| `supabase-gumroad-cleanup-schema.sql` | Schema + initial seed of 48 expired users from Apr 29 batch |
+
+### Supabase table: `gumroad_to_remove`
+
+- **Columns:** `email` (TEXT, PK), `expired_date` (DATE), `removed_at` (TIMESTAMPTZ, nullable), `removed_by` (TEXT, nullable), `notes` (TEXT, nullable), `created_at` (TIMESTAMPTZ, default NOW())
+- **RLS:** Enabled. Policy: `open_all` USING (true) WITH CHECK (true)
+- **Purpose:** Track which Gumroad-expired users have been manually removed from Alpha WhatsApp + Substack
+- **Read by:** `/api/churn-removed?table=gumroad` (GET)
+- **Written by:** `/api/churn-removed?table=gumroad` (POST) when checkbox toggled
+
+### Determining who to remove (the verified workflow)
+
+The naive "check Gumroad CSV cancellations" approach has a **critical false positive risk**: users migrate from Gumroad to Substack (3 cases detected on Apr 29 = ~6% of expired Gumroad users). Removing them from WhatsApp would expel paying customers. **Always cross-reference.**
+
+**Correct algorithm:**
+1. Parse Gumroad sales CSV. Filter to `Item Name = "10amalpha chat"` (recurring subs only — exclude one-shot products like "Portafolio" or "Dieta de Información")
+2. For each unique email, take latest row (by Purchase Date)
+3. Compute status:
+   - Has `Cancellation Date` AND `Subscription End Date <= today` → expired
+   - Has `Access Revoked? = 1` → expired
+   - `Refunded? = 1` or `Fully Refunded? = 1` → refunded (verify removal separately)
+   - Has `Cancellation Date` but `Subscription End Date > today` → still in prepaid period, leave
+   - Else → active, leave
+4. **CRITICAL CROSS-REFERENCE:** Hit `/api/churn?pass=elgordo&listactive=1` to get all active Stripe emails. Subtract that set from the expired list. Anyone in both = migrated, leave them in chat.
+
+The `?listactive=1` debug mode on `/api/churn` was added Apr 29 specifically for this cross-reference. Returns `{count, emails: [sorted array]}`.
+
+### Monthly playbook (manual until automated)
+
+**Cadence:** First week of each month. ~10 min if done on schedule.
+
+1. **Hernán:** Export Gumroad sales CSV covering the period (e.g., last 90 days, or year-to-date for full safety)
+2. **Hernán:** Forward all Gumroad cancellation emails to Claude (the email push notification is the canonical signal — see "On the horizon" for automation plan)
+3. **Claude:** Cross-reference against current `gumroad_to_remove` table to dedupe (don't re-add already-tracked emails)
+4. **Claude:** Cross-reference against Stripe active emails (`?listactive=1`) to filter out migrators
+5. **Claude:** Run INSERT with `ON CONFLICT (email) DO NOTHING` on `gumroad_to_remove` for new entries
+6. **Hernán:** Open `/admin/churn` → GUMROAD tab → check off as removed from WhatsApp + Substack
+
+### Apr 29 cleanup result
+
+- Cross-referenced 2 Gumroad CSVs (Jan 2025 → Apr 2026, 1,308 transaction rows)
+- 209 unique Gumroad buyers, 204 of those subscribed to "10amalpha chat"
+- Status breakdown: 148 active, 3 in prepaid period (still active), 51 expired, 2 refunded
+- After Stripe-active cross-reference: **3 false positives caught** (`juandaospina25`, `jorgemariobeuth`, `silviamargaritaalvarez` — all migrated to Substack, kept in chat)
+- **Final clean removal list: 48 users** — seeded into `gumroad_to_remove`
+- Hernán manually verified and removed all 48 from WhatsApp + Substack on Apr 29 (some had been removed previously in ad-hoc cleanups)
+
+### Sunset trajectory
+
+148 active Gumroad subs as of Apr 29. Expected decay: organic churn rate similar to Substack monthly (~10-12%/mo extrapolated). Estimated timeline to <10 active Gumroad subs: 12-18 months. No hard cutoff date set.
+
+### On the horizon — webhook automation (deferred)
+
+Each Gumroad cancellation generates a push notification email to `info@10am.pro` with format:
+
+```
+Subject: A subscription has been canceled.
+From: Gumroad
+Body: Your customer ([email]) has elected to cancel their subscription
+to 10amalpha chat. They will no longer be charged. Please note that they
+will continue to receive any posts you send to subscribers until the end
+of their billing cycle ([date]).
+```
+
+This email contains all data needed to auto-populate `gumroad_to_remove`. Two implementation paths considered Apr 29:
+
+**Path A (recommended when ready): Resend inbound webhook**
+- Verify `10am.pro` domain in Resend (already pending from April for the from-address upgrade)
+- Create inbound route `gumroad@10am.pro` → POST to `/api/churn-removed?table=gumroad&source=email-webhook`
+- Gmail filter: from `noreply@gumroad.com` AND subject contains "subscription has been canceled" → forward to `gumroad@10am.pro`
+- Extend `/api/churn-removed.js` to parse email body via regex (extract email + billing end date)
+- Effort: ~30 min once domain verified
+
+**Path B: Gmail watcher cron**
+- Every hour, hit Gmail API for unread Gumroad cancellation emails
+- Parse + insert into table + mark email read
+- Effort: ~1h, but more fragile (depends on Gmail filtering not breaking)
+
+**Decision:** Both deferred Apr 29. Hernán prefers manual email-driven workflow for now. Revisit if monthly volume becomes annoying or if a re-cleanup becomes needed.
+
+---
+
 ## 🚀 IG Boost Feature (Apr 18–19, 2026)
 
 **Goal:** Measure **cost per email** and **cost per paid sub** for IG boosts — replace "boost by feel" with a data-driven loop. Recommend which reel to boost, which landing to send traffic to, and track ROI end-to-end.
@@ -478,6 +577,38 @@ Going from pull to push. The tab requires you to remember to check; the cron gua
 ---
 
 ## Session Log
+
+### Apr 29, 2026 — Gumroad cleanup system + lessons relearned
+
+**What triggered this:** Hernán started receiving Gumroad cancellation emails and asked whether the existing churn dashboard was catching them. Answer: it wasn't — see Gumroad Cleanup System section above for full architecture.
+
+**What got built:**
+- New Supabase table `gumroad_to_remove` + initial seed of 48 expired users
+- New GUMROAD tab in `/admin/churn` with checkbox UI, persists state
+- `/api/churn-removed` extended via `?table=gumroad` query param to handle both tables
+- New `?listactive=1` debug mode on `/api/churn` — returns all active Stripe emails for cross-reference
+- New SUBSTACK/GUMROAD source badges on every row in the existing 5 churn tabs (badge derived from `priceMetadata.substack === "yes"`)
+
+**What got verified empirically:**
+- Gumroad and Stripe are independent systems despite being "connected" via Stripe Connect for payouts. Cross-ref result: 1 of 58 canceled-Gumroad emails in Stripe canceled list (and that 1 was a coincidence).
+- Migration Gumroad → Substack happens organically. Detected 3 cases (~6% of expired Gumroad users) where the same user had an active Substack sub. Removing them based on Gumroad expiry alone would have been a false positive.
+- The 48 final removals took ~30 min of manual WhatsApp + Substack cleanup; some had been ad-hoc-removed previously.
+
+**Hard-won lessons (don't relearn):**
+- **Adding new files to `/api/` reliably breaks Vercel builds.** Happened 4th time today (after 3 prior incidents documented in Apr 28 session log). Created `/api/gumroad-cleanup.js` → ERROR on deploy. Deleted it, merged logic into existing `/api/churn-removed.js` via `?table=` query param → built fine. **Going forward: NEVER create new files in `/api/`. Always extend existing endpoints with query params or path discriminators.** Root cause still unknown; possibly Vercel build cache or function-detection hashing.
+- **Build passes locally != build passes on Vercel.** `npx next build` succeeded both times new files were added; Vercel ERROR'd both times. Local build is necessary but not sufficient.
+- **Sed `\&` escaping is fine inside JS template literals.** Initially worried about it — verified via `cat -A` that the literal `&` was preserved correctly in the URL string. Not a bug source.
+- **`useEffect` auto-restore from sessionStorage is its own code path.** Added `fetchGumroad(pass)` only to `handleUnlock`, forgot the auto-restore useEffect. Result: tab loaded "Loading…" forever for users with cached pass. Fix: every fetch helper that runs on unlock must also run on auto-restore. Search for ALL occurrences when adding a new fetcher.
+- **Gumroad CSV export ≠ membership state.** Sales CSV is transaction history. A user can have `Cancellation Date` set 6 months ago but be currently re-subscribed if they came back. Always group by email → take latest row → derive status. Don't filter on "has cancellation" alone.
+- **Always cross-reference before destructive ops.** The 3-user false-positive catch (migrators) saved expelling paying customers. Any cleanup based on one system's data must verify against the other system before action.
+- **Supabase SQL editor truncates large pastes silently.** First attempt of the seed SQL failed with "syntax error at end of input LINE 0" — Hernán pasted ~80 lines and the editor cut off mid-INSERT. Workaround: split into 3 blocks (CREATE, POLICY, INSERT) and run sequentially. Going forward: any SQL > 50 lines goes in 2-3 blocks.
+
+**Strategic outcome:**
+- Gumroad sunset confirmed (every funnel — podcast, 10am.pro, social — points to Substack only). Let it degrade organically, no migration push.
+- Estimated timeline to < 10 active Gumroad subs: 12-18 months
+- Webhook automation (Resend inbound) deferred. Manual monthly playbook is acceptable for the volume.
+
+---
 
 ### Apr 28, 2026 — IG Boost system audit + v2 formula
 
