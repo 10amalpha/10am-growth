@@ -593,6 +593,8 @@ Hover any cell shows the benchmark in tooltip. Color: green border for ✓, red 
 
 Renders ABOVE the top-10 recommendations, in a gold-bordered container (`rgba(212,168,67,0.2)` border, `rgba(212,168,67,0.04)` bg) to distinguish from the main green recommendations.
 
+Each Fresh Pick is a compact card by default — click the gold **⚡ Boost** button to expand the same Configurar Boost block used in the top 10 (Landing dropdown with topical match suggestions · Presupuesto · Días · UTM Campaign · URL final con Copiar · Marcar como boosteado). The form state and `markBoosted` handler are shared between both sections — Fresh Picks and top 10 use identical infrastructure, so a reel boosted from Fresh Picks is tracked the same way and appears in the boosted-list filter on the next refresh.
+
 ### Why this matters
 
 The top-10 ranking is "qué boostear con confianza" (proven performers). Fresh Picks is "qué está saliendo nuevo" (early signals). Together they answer two different operational questions without one cannibalizing the other.
