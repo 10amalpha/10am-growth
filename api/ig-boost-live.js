@@ -26,6 +26,29 @@ export default async function handler(req, res) {
     if (!mResp.ok) throw new Error(`Media fetch failed: ${mResp.status}`);
     const mediaData = await mResp.json();
 
+    // ── DEBUG MODE: raw feed dump, no filters, no scoring ──
+    // Hit /api/ig-boost-live?debug=raw to verify Meta is returning fresh posts
+    if (req.query.debug === "raw") {
+      const all = (mediaData.data || []).slice(0, 30).map(m => ({
+        id: m.id,
+        product: m.media_product_type,
+        type: m.media_type,
+        published: m.timestamp,
+        age_hours: Math.round((Date.now() - new Date(m.timestamp).getTime()) / 3600000),
+        likes: m.like_count,
+        comments: m.comments_count,
+        caption: (m.caption || "").slice(0, 100),
+        permalink: m.permalink,
+      }));
+      return res.status(200).json({
+        fetched_at: new Date().toISOString(),
+        meta_returned: mediaData.data?.length || 0,
+        most_recent_post: all[0] || null,
+        most_recent_reel: all.find(p => p.product === "REELS" || p.type === "VIDEO") || null,
+        all_30: all,
+      });
+    }
+
     const cutoff = Date.now() - 28 * 24 * 60 * 60 * 1000;
     const reels = (mediaData.data || []).filter(m => {
       const isReel = m.media_product_type === "REELS" || m.media_type === "VIDEO";
