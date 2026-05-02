@@ -101,6 +101,7 @@ export default function IgBoostTab() {
   const mob = useIsMobile();
   const [recs, setRecs] = useState([]);
   const [freshPicks, setFreshPicks] = useState([]);
+  const [expandedFresh, setExpandedFresh] = useState({});
   const [posts, setPosts] = useState([]);
   const [tracking, setTracking] = useState([]);
   const [computedAt, setComputedAt] = useState(null);
@@ -175,7 +176,7 @@ export default function IgBoostTab() {
     
     // Initialize form state — pre-select best topical match per clip (not homepage)
     const initial = {};
-    (r.recommendations || []).forEach(c => {
+    const initForm = (c) => {
       const sorted = sortPostsForClip(c.caption, combined);
       const bestMatch = sorted.find(p => !p._isSpecial && p._score > 0);
       const defaultLanding = bestMatch ? bestMatch.url : "https://10am.pro/subscribe";
@@ -185,7 +186,9 @@ export default function IgBoostTab() {
         campaign: `${slugFromCaption(c.caption)}_${monthTag()}`,
         days: 7,
       };
-    });
+    };
+    (r.recommendations || []).forEach(initForm);
+    (r.fresh_picks || []).forEach(initForm);
     setForms(initial);
     setLoading(false);
   };
@@ -340,44 +343,138 @@ export default function IgBoostTab() {
             </div>
           </div>
           <div style={{ display: "grid", gap: 8 }}>
-            {freshPicks.map(c => (
-              <div key={c.media_id} style={{ padding: "10px 12px", background: "rgba(0,0,0,0.2)", borderRadius: 6, border: "1px solid rgba(255,255,255,0.04)" }}>
-                <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "auto 1fr auto", gap: 10, alignItems: "center", marginBottom: 8 }}>
-                  <div style={{ fontSize: 10, color: "#D4A843", fontFamily: "'JetBrains Mono'", fontWeight: 600, whiteSpace: "nowrap" }}>
-                    {c.age_hours < 1 ? "<1h" : `${c.age_hours.toFixed(0)}h`} · {c.views.toLocaleString()} views
+            {freshPicks.map(c => {
+              const f = forms[c.media_id] || { landing: "https://10am.pro/subscribe", budget: 50, campaign: "", days: 7 };
+              const fb = feedback[c.media_id];
+              const urlFb = feedback[`url_${c.media_id}`];
+              const finalUrl = buildFinalUrl(f.landing, f.campaign);
+              const isExpanded = expandedFresh[c.media_id];
+              return (
+                <div key={c.media_id} style={{ padding: "10px 12px", background: "rgba(0,0,0,0.2)", borderRadius: 6, border: "1px solid rgba(255,255,255,0.04)" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "auto 1fr auto auto", gap: 10, alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ fontSize: 10, color: "#D4A843", fontFamily: "'JetBrains Mono'", fontWeight: 600, whiteSpace: "nowrap" }}>
+                      {c.age_hours < 1 ? "<1h" : `${c.age_hours.toFixed(0)}h`} · {c.views.toLocaleString()} views
+                    </div>
+                    <div style={{ minWidth: 0, fontSize: 11, color: "#E4E4E7", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {c.caption.split("\n")[0] || "(sin caption)"}
+                    </div>
+                    <a href={c.permalink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#22C55E", textDecoration: "none", padding: "4px 10px", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 4, whiteSpace: "nowrap", textAlign: "center" }}>
+                      Ver reel ↗
+                    </a>
+                    <button
+                      onClick={() => setExpandedFresh(prev => ({ ...prev, [c.media_id]: !prev[c.media_id] }))}
+                      style={{ fontSize: 10, color: "#D4A843", background: "rgba(212,168,67,0.08)", border: "1px solid rgba(212,168,67,0.3)", padding: "4px 10px", borderRadius: 4, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                    >
+                      {isExpanded ? "− Cerrar" : "⚡ Boost"}
+                    </button>
                   </div>
-                  <div style={{ minWidth: 0, fontSize: 11, color: "#E4E4E7", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {c.caption.split("\n")[0] || "(sin caption)"}
-                  </div>
-                  <a href={c.permalink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#22C55E", textDecoration: "none", padding: "4px 10px", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 4, whiteSpace: "nowrap", textAlign: "center" }}>
-                    Ver reel ↗
-                  </a>
-                </div>
-                {/* Standardized metrics grid — same 4 metrics, same order, every reel */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginTop: 6 }}>
-                  {(c.metrics_grid || []).map((m, idx) => (
-                    <div key={idx} title={m.benchmark} style={{
-                      padding: "6px 8px",
-                      background: m.status === "✓" ? "rgba(34,197,94,0.08)" : m.status === "✗" ? "rgba(239,68,68,0.05)" : "rgba(255,255,255,0.02)",
-                      border: `1px solid ${m.status === "✓" ? "rgba(34,197,94,0.25)" : m.status === "✗" ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.04)"}`,
-                      borderRadius: 4,
-                    }}>
-                      <div style={{ fontSize: 8, color: "#71717A", fontFamily: "'JetBrains Mono'", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>
-                        {m.label}
+                  {/* Standardized metrics grid — same 4 metrics, same order, every reel */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginTop: 6 }}>
+                    {(c.metrics_grid || []).map((m, idx) => (
+                      <div key={idx} title={m.benchmark} style={{
+                        padding: "6px 8px",
+                        background: m.status === "✓" ? "rgba(34,197,94,0.08)" : m.status === "✗" ? "rgba(239,68,68,0.05)" : "rgba(255,255,255,0.02)",
+                        border: `1px solid ${m.status === "✓" ? "rgba(34,197,94,0.25)" : m.status === "✗" ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.04)"}`,
+                        borderRadius: 4,
+                      }}>
+                        <div style={{ fontSize: 8, color: "#71717A", fontFamily: "'JetBrains Mono'", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>
+                          {m.label}
+                        </div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                          <span style={{ fontSize: 12, color: "#E4E4E7", fontFamily: "'JetBrains Mono'", fontWeight: 600 }}>
+                            {m.value}
+                          </span>
+                          <span style={{ fontSize: 10, color: m.status === "✓" ? "#22C55E" : m.status === "✗" ? "#EF4444" : "#52525B" }}>
+                            {m.status}
+                          </span>
+                        </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                        <span style={{ fontSize: 12, color: "#E4E4E7", fontFamily: "'JetBrains Mono'", fontWeight: 600 }}>
-                          {m.value}
-                        </span>
-                        <span style={{ fontSize: 10, color: m.status === "✓" ? "#22C55E" : m.status === "✗" ? "#EF4444" : "#52525B" }}>
-                          {m.status}
-                        </span>
+                    ))}
+                  </div>
+
+                  {/* EXPANDABLE BOOST CONFIG — same fields/handlers as top 10 cards */}
+                  {isExpanded && (
+                    <div style={{ marginTop: 12, padding: mob ? 12 : 14, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6 }}>
+                      <div style={{ fontSize: 10, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10, fontWeight: 600 }}>
+                        ⚡ Configurar Boost
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "2fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+                        <div>
+                          <label style={labelStyle}>Landing</label>
+                          {(() => {
+                            const sortedPosts = sortPostsForClip(c.caption, posts);
+                            const topMatch = sortedPosts.find(p => !p._isSpecial && p._score > 0);
+                            const selectedPost = sortedPosts.find(p => p.url === f.landing);
+                            const isHomepage = f.landing === "https://10am.pro";
+                            return (
+                              <>
+                                <select value={f.landing} onChange={e => updateForm(c.media_id, "landing", e.target.value)} style={{ ...inputStyle, borderColor: isHomepage ? "rgba(239,68,68,0.3)" : inputStyle.border }}>
+                                  {sortedPosts.map((p, i) => {
+                                    const prefix = p._isSpecial ? "" : (topMatch && p.url === topMatch.url ? "🎯 " : p._score > 0 ? "· " : "  ");
+                                    const suffix = !p._isSpecial && p._score > 0 ? ` (${p._score} match${p._score > 1 ? "es" : ""})` : "";
+                                    const label = `${prefix}${p.title}${suffix}`;
+                                    return <option key={i} value={p.url}>{label.length > 80 ? label.slice(0, 80) + "…" : label}</option>;
+                                  })}
+                                </select>
+                                {isHomepage && (
+                                  <div style={{ fontSize: 9, color: "#EF4444", marginTop: 4, lineHeight: 1.4 }}>
+                                    ⚠️ Homepage convierte a 1.3% (6x peor que post específico). Preferí un post del tema.
+                                  </div>
+                                )}
+                                {!isHomepage && topMatch && selectedPost && !selectedPost._isSpecial && selectedPost.url !== topMatch.url && (
+                                  <div style={{ fontSize: 9, color: "#D4A843", marginTop: 4, lineHeight: 1.4 }}>
+                                    💡 Mejor match topical: "{topMatch.title.slice(0, 50)}{topMatch.title.length > 50 ? "…" : ""}"
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                        <div>
+                          <label style={labelStyle}>Presupuesto USD</label>
+                          <input type="number" value={f.budget} onChange={e => updateForm(c.media_id, "budget", Number(e.target.value))} style={inputStyle} />
+                        </div>
+                        <div>
+                          <label style={labelStyle}>Días</label>
+                          <input type="number" value={f.days} onChange={e => updateForm(c.media_id, "days", Number(e.target.value))} style={inputStyle} />
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: 10 }}>
+                        <label style={labelStyle}>UTM Campaign</label>
+                        <input type="text" value={f.campaign} onChange={e => updateForm(c.media_id, "campaign", e.target.value)} style={inputStyle} />
+                      </div>
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={labelStyle}>URL final para IG Boost</label>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <input readOnly value={finalUrl} style={{ ...inputStyle, background: "rgba(34,197,94,0.04)", color: "#22C55E", fontSize: 10 }} />
+                          <button onClick={() => copyUrl(finalUrl, c.media_id)} style={{
+                            background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)", color: "#22C55E",
+                            padding: "7px 14px", borderRadius: 6, fontSize: 11, cursor: "pointer", fontFamily: "inherit", fontWeight: 600, whiteSpace: "nowrap"
+                          }}>
+                            {urlFb?.msg || "📋 Copiar"}
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <button
+                          onClick={() => markBoosted(c)}
+                          disabled={submitting[c.media_id]}
+                          style={{
+                            background: submitting[c.media_id] ? "rgba(34,197,94,0.05)" : "rgba(34,197,94,0.1)",
+                            border: "1px solid rgba(34,197,94,0.3)", color: "#22C55E",
+                            padding: "9px 22px", borderRadius: 6, fontSize: 12, cursor: submitting[c.media_id] ? "default" : "pointer",
+                            fontFamily: "inherit", fontWeight: 600,
+                          }}
+                        >
+                          {submitting[c.media_id] ? "Guardando..." : "✓ Marcar como boosteado"}
+                        </button>
+                        {fb && <span style={{ fontSize: 11, color: fb.type === "ok" ? "#22C55E" : "#EF4444" }}>{fb.msg}</span>}
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
