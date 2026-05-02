@@ -332,7 +332,7 @@ export default function IgBoostTab() {
                 ✨ FRESH PICKS — recién publicados con buen performance
               </div>
               <div style={{ fontSize: 10, color: "#71717A", marginTop: 2 }}>
-                &lt;72h con ER ≥3% · velocidad ≥50 v/h · saves o shares tempranos
+                &lt;72h · Velocity ≥100 v/h · ER ≥4% · Saves ≥5 · Shares ≥5 → ✓ alta
               </div>
             </div>
             <div style={{ fontSize: 10, color: "#52525B", fontFamily: "'JetBrains Mono'" }}>
@@ -341,21 +341,41 @@ export default function IgBoostTab() {
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {freshPicks.map(c => (
-              <div key={c.media_id} style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "auto 1fr auto", gap: 10, alignItems: "center", padding: "10px 12px", background: "rgba(0,0,0,0.2)", borderRadius: 6, border: "1px solid rgba(255,255,255,0.04)" }}>
-                <div style={{ fontSize: 10, color: "#D4A843", fontFamily: "'JetBrains Mono'", fontWeight: 600, whiteSpace: "nowrap" }}>
-                  {c.age_hours < 1 ? "<1h" : `${c.age_hours.toFixed(0)}h`} · {c.views.toLocaleString()} views
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 11, color: "#E4E4E7", lineHeight: 1.4, marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div key={c.media_id} style={{ padding: "10px 12px", background: "rgba(0,0,0,0.2)", borderRadius: 6, border: "1px solid rgba(255,255,255,0.04)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "auto 1fr auto", gap: 10, alignItems: "center", marginBottom: 8 }}>
+                  <div style={{ fontSize: 10, color: "#D4A843", fontFamily: "'JetBrains Mono'", fontWeight: 600, whiteSpace: "nowrap" }}>
+                    {c.age_hours < 1 ? "<1h" : `${c.age_hours.toFixed(0)}h`} · {c.views.toLocaleString()} views
+                  </div>
+                  <div style={{ minWidth: 0, fontSize: 11, color: "#E4E4E7", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {c.caption.split("\n")[0] || "(sin caption)"}
                   </div>
-                  <div style={{ fontSize: 9, color: "#71717A", fontFamily: "'JetBrains Mono'" }}>
-                    {c.fresh_signals || `ER ${c.engagement_rate}% · ${c.velocity_per_hour} v/h`}
-                  </div>
+                  <a href={c.permalink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#22C55E", textDecoration: "none", padding: "4px 10px", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 4, whiteSpace: "nowrap", textAlign: "center" }}>
+                    Ver reel ↗
+                  </a>
                 </div>
-                <a href={c.permalink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#22C55E", textDecoration: "none", padding: "4px 10px", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 4, whiteSpace: "nowrap", textAlign: "center" }}>
-                  Ver reel ↗
-                </a>
+                {/* Standardized metrics grid — same 4 metrics, same order, every reel */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginTop: 6 }}>
+                  {(c.metrics_grid || []).map((m, idx) => (
+                    <div key={idx} title={m.benchmark} style={{
+                      padding: "6px 8px",
+                      background: m.status === "✓" ? "rgba(34,197,94,0.08)" : m.status === "✗" ? "rgba(239,68,68,0.05)" : "rgba(255,255,255,0.02)",
+                      border: `1px solid ${m.status === "✓" ? "rgba(34,197,94,0.25)" : m.status === "✗" ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.04)"}`,
+                      borderRadius: 4,
+                    }}>
+                      <div style={{ fontSize: 8, color: "#71717A", fontFamily: "'JetBrains Mono'", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>
+                        {m.label}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                        <span style={{ fontSize: 12, color: "#E4E4E7", fontFamily: "'JetBrains Mono'", fontWeight: 600 }}>
+                          {m.value}
+                        </span>
+                        <span style={{ fontSize: 10, color: m.status === "✓" ? "#22C55E" : m.status === "✗" ? "#EF4444" : "#52525B" }}>
+                          {m.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

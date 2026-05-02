@@ -229,18 +229,21 @@ export default async function handler(req, res) {
       .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
       .map((c, i) => {
         const velocity = c.views / Math.max(c.age_hours, 1);
-        const signals = [];
-        if (velocity >= 100) signals.push(`${velocity.toFixed(0)} views/h — velocidad alta`);
-        else if (velocity >= 50) signals.push(`${velocity.toFixed(0)} views/h — buena velocidad`);
-        if (c.engagement_rate >= 4) signals.push(`ER ${c.engagement_rate.toFixed(1)}% — calidad alta`);
-        else if (c.engagement_rate >= 3) signals.push(`ER ${c.engagement_rate.toFixed(1)}% — calidad sólida`);
-        if (c.shares > 0) signals.push(`${c.shares} shares ya — temprano`);
-        if (c.saves > 0) signals.push(`${c.saves} saves ya — temprano`);
+        // STANDARDIZED METRICS — always the same 4, always in the same order
+        // Status: ✓ (above benchmark) · — (neutral) · ✗ (below benchmark)
+        // Benchmarks chosen to flag what matters for boost decision
+        const status = (val, good, ok) => val >= good ? "✓" : val >= ok ? "—" : "✗";
         return {
           ...c,
           rank: i + 1,
           velocity_per_hour: Number(velocity.toFixed(1)),
-          fresh_signals: signals.slice(0, 2).join(" · "),
+          // Always returns the same 4 metrics in the same order
+          metrics_grid: [
+            { label: "Velocity", value: `${velocity.toFixed(0)} v/h`, status: status(velocity, 100, 30), benchmark: "≥100 alta · ≥30 ok" },
+            { label: "ER", value: `${c.engagement_rate.toFixed(1)}%`, status: status(c.engagement_rate, 4, 2.5), benchmark: "≥4% alta · ≥2.5% ok" },
+            { label: "Saves", value: String(c.saves), status: c.saves >= 5 ? "✓" : c.saves >= 1 ? "—" : "✗", benchmark: "≥5 alta · ≥1 ok" },
+            { label: "Shares", value: String(c.shares), status: c.shares >= 5 ? "✓" : c.shares >= 1 ? "—" : "✗", benchmark: "≥5 alta · ≥1 ok" },
+          ],
         };
       });
 
