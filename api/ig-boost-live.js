@@ -214,6 +214,36 @@ export default async function handler(req, res) {
         };
       });
 
+    // ── 10. Fresh Picks: <72h reels with positive early signals ──
+    // Triggers if ANY: ER ≥ 3% OR velocity ≥ 50 views/h OR saves > 0 OR shares > 0
+    const freshPicks = clips
+      .map(c => ({
+        ...c,
+        age_hours: (now - new Date(c.published_at).getTime()) / 3600000,
+      }))
+      .filter(c => c.age_hours < FRESH_HOURS)
+      .filter(c => {
+        const velocity = c.views / Math.max(c.age_hours, 1);
+        return c.engagement_rate >= 3 || velocity >= 50 || c.saves > 0 || c.shares > 0;
+      })
+      .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
+      .map((c, i) => {
+        const velocity = c.views / Math.max(c.age_hours, 1);
+        const signals = [];
+        if (velocity >= 100) signals.push(`${velocity.toFixed(0)} views/h — velocidad alta`);
+        else if (velocity >= 50) signals.push(`${velocity.toFixed(0)} views/h — buena velocidad`);
+        if (c.engagement_rate >= 4) signals.push(`ER ${c.engagement_rate.toFixed(1)}% — calidad alta`);
+        else if (c.engagement_rate >= 3) signals.push(`ER ${c.engagement_rate.toFixed(1)}% — calidad sólida`);
+        if (c.shares > 0) signals.push(`${c.shares} shares ya — temprano`);
+        if (c.saves > 0) signals.push(`${c.saves} saves ya — temprano`);
+        return {
+          ...c,
+          rank: i + 1,
+          velocity_per_hour: Number(velocity.toFixed(1)),
+          fresh_signals: signals.slice(0, 2).join(" · "),
+        };
+      });
+
     return res.status(200).json({
       computed_at: new Date().toISOString(),
       reels_scanned: reels.length,
@@ -221,6 +251,8 @@ export default async function handler(req, res) {
       viral_threshold: viralThreshold,
       count: ranked.length,
       recommendations: ranked,
+      fresh_picks: freshPicks,
+      fresh_count: freshPicks.length,
     });
   } catch (e) {
     console.error("Live fetch error:", e);

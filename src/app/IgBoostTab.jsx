@@ -100,6 +100,7 @@ const sortPostsForClip = (clipCaption, posts) => {
 export default function IgBoostTab() {
   const mob = useIsMobile();
   const [recs, setRecs] = useState([]);
+  const [freshPicks, setFreshPicks] = useState([]);
   const [posts, setPosts] = useState([]);
   const [tracking, setTracking] = useState([]);
   const [computedAt, setComputedAt] = useState(null);
@@ -157,6 +158,7 @@ export default function IgBoostTab() {
     ]);
     if (r.error) setErr(r.error);
     setRecs(r.recommendations || []);
+    setFreshPicks(r.fresh_picks || []);
     setComputedAt(r.computed_at);
     const combined = [...(p.specials || []), ...(p.posts || [])];
     setPosts(combined);
@@ -320,6 +322,45 @@ export default function IgBoostTab() {
           )}
         </div>
       </div>
+
+      {/* FRESH PICKS — recently published with positive early signals */}
+      {freshPicks.length > 0 && (
+        <div style={{ marginBottom: 24, padding: 16, background: "rgba(212,168,67,0.04)", border: "1px solid rgba(212,168,67,0.2)", borderRadius: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+            <div>
+              <div style={{ fontSize: mob ? 13 : 14, fontWeight: 700, color: "#D4A843", fontFamily: "'Space Grotesk'" }}>
+                ✨ FRESH PICKS — recién publicados con buen performance
+              </div>
+              <div style={{ fontSize: 10, color: "#71717A", marginTop: 2 }}>
+                &lt;72h con ER ≥3% · velocidad ≥50 v/h · saves o shares tempranos
+              </div>
+            </div>
+            <div style={{ fontSize: 10, color: "#52525B", fontFamily: "'JetBrains Mono'" }}>
+              {freshPicks.length} {freshPicks.length === 1 ? "candidato" : "candidatos"}
+            </div>
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {freshPicks.map(c => (
+              <div key={c.media_id} style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "auto 1fr auto", gap: 10, alignItems: "center", padding: "10px 12px", background: "rgba(0,0,0,0.2)", borderRadius: 6, border: "1px solid rgba(255,255,255,0.04)" }}>
+                <div style={{ fontSize: 10, color: "#D4A843", fontFamily: "'JetBrains Mono'", fontWeight: 600, whiteSpace: "nowrap" }}>
+                  {c.age_hours < 1 ? "<1h" : `${c.age_hours.toFixed(0)}h`} · {c.views.toLocaleString()} views
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 11, color: "#E4E4E7", lineHeight: 1.4, marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {c.caption.split("\n")[0] || "(sin caption)"}
+                  </div>
+                  <div style={{ fontSize: 9, color: "#71717A", fontFamily: "'JetBrains Mono'" }}>
+                    {c.fresh_signals || `ER ${c.engagement_rate}% · ${c.velocity_per_hour} v/h`}
+                  </div>
+                </div>
+                <a href={c.permalink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#22C55E", textDecoration: "none", padding: "4px 10px", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 4, whiteSpace: "nowrap", textAlign: "center" }}>
+                  Ver reel ↗
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* TOP 3 CARDS */}
       {top3.map(clip => {
