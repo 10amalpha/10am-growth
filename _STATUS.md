@@ -532,6 +532,86 @@ Going from pull to push. The tab requires you to remember to check; the cron gua
 
 ---
 
+## ✨ FRESH PICKS Section (May 1, 2026)
+
+**Goal:** Solve the recurring "no veo los reels nuevos" problem. The main top-10 ranking is biased toward older reels that have had time to accumulate shares/saves — a reel published 1h ago can't win on absolute counts. Fresh Picks gives recent reels their own dedicated visibility section, evaluated on signals that are meaningful at their age (velocity, ER, early intent).
+
+### Architecture
+
+Reuses `/api/ig-boost-live` — added a `fresh_picks` array to the response alongside the existing `recommendations`. Single endpoint call, no extra fetch, no new file (Vercel routing issues).
+
+### Filter logic
+
+Reel qualifies for Fresh Picks if ALL:
+- `age_hours < 72`
+- ANY of: `engagement_rate >= 3%` OR `velocity >= 50 views/h` OR `saves > 0` OR `shares > 0`
+
+Sorted by `published_at DESC` (most recent first), not by score — chronological flow is the point.
+
+### Standardized metrics grid (always 4 cells, same order, same benchmarks)
+
+Every Fresh Pick shows the same 4 metrics with traffic-light status, so reels are visually comparable column-by-column:
+
+| Metric | ✓ alta | — ok | ✗ debajo |
+|---|---|---|---|
+| Velocity (views/h) | ≥100 | ≥30 | <30 |
+| ER (engagement rate %) | ≥4% | ≥2.5% | <2.5% |
+| Saves | ≥5 | ≥1 | 0 |
+| Shares | ≥5 | ≥1 | 0 |
+
+Hover any cell shows the benchmark in tooltip. Color: green border for ✓, red border for ✗, neutral for —.
+
+### API response shape (additions)
+
+```json
+{
+  "recommendations": [...],
+  "fresh_picks": [
+    {
+      "media_id": "...",
+      "permalink": "...",
+      "caption": "...",
+      "age_hours": 1.5,
+      "views": 837,
+      "velocity_per_hour": 543.8,
+      "engagement_rate": 1.67,
+      "saves": 0,
+      "shares": 0,
+      "metrics_grid": [
+        { "label": "Velocity", "value": "544 v/h", "status": "✓", "benchmark": "≥100 alta · ≥30 ok" },
+        { "label": "ER", "value": "1.7%", "status": "✗", "benchmark": "≥4% alta · ≥2.5% ok" },
+        { "label": "Saves", "value": "0", "status": "✗", "benchmark": "≥5 alta · ≥1 ok" },
+        { "label": "Shares", "value": "0", "status": "✗", "benchmark": "≥5 alta · ≥1 ok" }
+      ]
+    }
+  ],
+  "fresh_count": 3
+}
+```
+
+### UI placement
+
+Renders ABOVE the top-10 recommendations, in a gold-bordered container (`rgba(212,168,67,0.2)` border, `rgba(212,168,67,0.04)` bg) to distinguish from the main green recommendations.
+
+### Why this matters
+
+The top-10 ranking is "qué boostear con confianza" (proven performers). Fresh Picks is "qué está saliendo nuevo" (early signals). Together they answer two different operational questions without one cannibalizing the other.
+
+A reel that graduates from Fresh Picks (after 72h) flows naturally into the top-10 competition. Nothing is lost.
+
+### Debug endpoints (always available — never get blindsided again)
+
+- `GET /api/ig-boost-live?debug=raw` — most recent 30 posts from Meta with `age_hours`, no filters, no scoring. Use to verify Meta API is returning fresh data.
+- `GET /api/ig-boost-live?raw=1` — all reels (post-filter for VIDEO/REELS, post-insights), sorted newest first, includes views/likes/saves/shares/ER. Use to inspect what scoring sees BEFORE ranking.
+
+### Hard-won lesson — VERCEL HATES NEW FILES
+
+**Tried first:** Created `/api/ig-debug-feed.js` as separate endpoint. Got 404 with `last-modified: 34 hours ago` — Vercel didn't deploy the new file route. Same pattern caught earlier with the Gumroad churn endpoint.
+
+**Workaround pattern:** Always extend an existing endpoint with a query param (`?debug=raw`, `?raw=1`) instead of creating new `/api/*.js` files. New files frequently fail to register routes after deploy. Modifications to existing files always work.
+
+---
+
 ## API Keys & Credentials
 
 | Service | Key/ID |
