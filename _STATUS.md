@@ -100,41 +100,48 @@ All data hardcoded from Substack CSV. Source categorization: YouTube/TikTok/Inst
 
 ---
 
-## Current State (April 13, 2026)
+## Current State (May 3, 2026)
 
-### Followers: 145,518 total
+### Followers: 146,840 total (+1,322 vs Apr 13)
 
-TikTok 50,000 | Spotify 36,221 | YouTube 23,800 (LIVE) | Instagram 17,605 (LIVE) | X 5,862 | Substack 4,728 | LinkedIn 1,302 | Apple 6,000
+TikTok 50,100 | Spotify 36,527 | YouTube 23,800 (LIVE) | Instagram 17,605 (LIVE) | X 6,092 | Substack 5,414 | LinkedIn 1,307 | Apple 6,000
 
-### Revenue (March 2026): $13,721/mo
+### Revenue (April 2026): $19,517/mo (+42% vs March)
 
-Stripe $7,777 (56.7%) | YouTube $4,395 (32.0%) | Events $1,320 (9.6%) | PayPal $132 | Spotify $98
+Stripe $7,237 (37%) | Events $4,607 (24%) | YouTube $3,737 (19%) | Sponsors $3,710 (19%) | PayPal $132 | Spotify $94
 
-### Expenses (March 2026): $1,810/mo
+**Best month YTD.** Drivers: Ep200 + Alpha AMAs ($4,607 events), first sponsor month ($3,710), Stripe holding strong despite YouTube dip.
 
-### Stripe ARR: $36,103
+### Expenses (April 2026): $4,339/mo
 
-MRR $3,009 | Daily growth +$281 | Trajectory: $400→$36K in 127 days
+Up from $1,810 March. Drivers: Sociedad USA $2,200 (one-off), Sponsor pass-through, Gordo $594, Anthropic $150, NotebookLM $250. New keys added: `google_one`, `sociedad_usa`.
 
-### Subscriber Health
+### Take-home per partner (April): $7,589/mo (+30% vs March $5,855)
 
-61 active + 9 trialing | 1 cancel pending (Black $888) | 4 delinquent → removed Apr 3
+### Stripe MRR: $3,007 (Substack only) | ARR: $36K
 
-MRR locked (annual/Black): $888 (32%) | MRR at risk (monthly): $1,915 (68%)
+Roll-forward Apr: 63 → 78 subs (+15) | New 27, Reactivated 8, Churned 20 | Subscriber churn 20.4% | Net new MRR +$567
 
-Cohort retention (monthly subs only): Jan M3 67% | Feb M2 88% | Mar M1 100%
+### Subscriber Health (May 3)
+
+80 active subs | 7 resubs YTD (4 in last 30 days) | 0 past due (Churn Control cleaned) | 13 to remove from Búnker | 5 recent cancels still active
+
+MRR locked (annual): $967 (32%, 29 subs) | MRR at risk (monthly): $2,040 (68%, 51 subs)
+
+Cohort retention (monthly subs only): Jan M4 60% | Feb M3 67% | Mar M2 71% | Apr M1 100%
 
 ### Key Insights
 
-- **Hermanos Bilbao:** 631 subs, $0 rev (0% paid) — volume without monetization. ARIAS: 188 subs, $1,360 (18% paid) — the quality benchmark.
-- **March record:** 917 new subs, 12% conv. But 58% from HB at 0% paid.
-- **YouTube memberships declining:** Peak $5,166 (Mar 2025) → $4,195 (Mar 2026). ~840 members migrating to Substack (intentional — 8× more valuable).
-- **Retention improving:** Jan M2 83% → Feb M2 88%. Check Mar M2 in May to validate retention stack.
-- **Retention stack:** mercados.10am.pro + AMAs + Cerebro AI + el Búnker. Activation sequence: welcome email → Mercados code → Búnker invite → AMA invite (must hit in week 1).
+- **Hermanos Bilbao:** 974 subs all-time, $0 rev (still 0% paid). ARIAS FINANCIAL ACADEMY: 208 subs, $1,840 (#1 by revenue). FUTOPIX: only 7 subs but $400 — highest paid % of small recs.
+- **April record:** 991 new subs, 6.9% conv (vs Mar 11.9%). Volume up but conversion dropped — likely mix shift toward Direct/IG.
+- **Resubs validate the funnel:** 7 YTD, 4 in last 30 days. Esteban Garzón, Coppiano, Paula Debate, Daniel Mazuera. Retention stack is bringing leavers back.
+- **Mar M2 71%** (vs Feb M2 83%) — slight dip. Watch Mar M3 in June.
+- **YouTube memberships declining:** $4,395 (Mar) → $3,737 (Apr). Migration to Substack continues as intended.
+- **Retention stack:** mercados.10am.pro + AMAs + Cerebro AI + el Búnker. Activation sequence still critical in week 1.
 
-### Luma Events: 4 active, 293 registrations
+### Luma Events: 4 active
 
-Alpha 63 (76, $15) | Alpha 64 (24, $15) | Ep200 Fireside (163, $40) | Almuerzo (30, SOLD OUT)
+Alpha series ongoing. Ep200 Fireside (May 21 EAFIT, 163 reg + growing). Almuerzo private SOLD OUT.
 
 ---
 
