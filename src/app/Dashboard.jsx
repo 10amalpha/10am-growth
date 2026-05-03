@@ -656,10 +656,10 @@ export default function GrowthDashboard(){
           {/* Top-Level KPIs */}
           <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(4,1fr)",gap:10,marginBottom:16}}>
             {[
-              {label:"Total Subs (All Time)",value:"4,893",sub:"From Substack sources CSV (Apr 3)",color:"#FF6719"},
-              {label:"Total Visitors Tracked",value:"56K+",sub:"All sources combined",color:"#22C55E"},
-              {label:"Best Converter",value:"YouTube",sub:"22.7% visitor→sub rate",color:"#FF0000"},
-              {label:"Revenue from Subs",value:"$41.7K",sub:"All-time from sources data",color:"#D4A843"},
+              {label:"Total Subs (All Time)",value:"5,754",sub:"From Substack sources CSV (May 3)",color:"#FF6719"},
+              {label:"Total Visitors Tracked",value:"67.9K",sub:"All sources combined",color:"#22C55E"},
+              {label:"Best Converter",value:"YouTube",sub:"22.1% visitor→sub rate",color:"#FF0000"},
+              {label:"Revenue from Subs",value:"$56K",sub:"All-time from sources data",color:"#D4A843"},
             ].map((k,i)=>(<div key={i} style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.05)",borderRadius:8,padding:"14px 16px"}}><div style={{fontSize:9,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>{k.label}</div><div style={{fontSize:24,fontWeight:700,color:k.color,fontFamily:"'Space Grotesk'"}}>{k.value}</div><div style={{fontSize:10,color:"#71717A",marginTop:4}}>{k.sub}</div></div>))}
           </div>
 
@@ -668,15 +668,15 @@ export default function GrowthDashboard(){
             <div style={{fontSize:10,color:"#71717A",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:16}}>Conversion Rate by Source (Visitor → Subscriber)</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {[
-                {source:"YouTube",subs:133,visitors:586,rate:22.7,color:"#FF0000",rev:"$1,680"},
-                {source:"TikTok",subs:13,visitors:82,rate:15.9,color:"#00F2EA",rev:"$0"},
-                {source:"Google (SEO)",subs:241,visitors:1735,rate:13.9,color:"#4285F4",rev:"$7,368"},
-                {source:"PodcastAI",subs:92,visitors:740,rate:12.4,color:"#818CF8",rev:"$480"},
-                {source:"Instagram",subs:65,visitors:640,rate:10.2,color:"#E1306C",rev:"$0"},
-                {source:"X / Twitter",subs:147,visitors:2487,rate:5.9,color:"#A1A1AA",rev:"$2,640"},
-                {source:"LinkedIn",subs:28,visitors:731,rate:3.8,color:"#0A66C2",rev:"$480"},
-                {source:"Direct",subs:794,visitors:28519,rate:2.8,color:"#71717A",rev:"$9,922"},
-                {source:"Substack",subs:2404,visitors:14149,rate:17.0,color:"#FF6719",rev:"$16,888"},
+                {source:"YouTube",subs:151,visitors:683,rate:22.1,color:"#FF0000",rev:"$2,080"},
+                {source:"Substack",subs:2980,visitors:14997,rate:19.9,color:"#FF6719",rev:"$20,568"},
+                {source:"TikTok",subs:15,visitors:90,rate:16.7,color:"#00F2EA",rev:"$0"},
+                {source:"Google (SEO)",subs:300,visitors:2164,rate:13.9,color:"#4285F4",rev:"$11,528"},
+                {source:"PodcastAI",subs:92,visitors:749,rate:12.3,color:"#818CF8",rev:"$1,360"},
+                {source:"X / Twitter",subs:170,visitors:2750,rate:6.2,color:"#A1A1AA",rev:"$2,640"},
+                {source:"Direct",subs:1895,visitors:41583,rate:4.6,color:"#71717A",rev:"$17,362"},
+                {source:"LinkedIn",subs:28,visitors:769,rate:3.6,color:"#0A66C2",rev:"$480"},
+                {source:"Instagram",subs:123,visitors:4091,rate:3.0,color:"#E1306C",rev:"$0"},
               ].map((ch,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 12px",background:i%2===0?"rgba(255,255,255,0.015)":"transparent",borderRadius:6}}>
                 <div style={{width:mob?80:120,fontSize:11,color:ch.color,fontWeight:600,flexShrink:0}}>{ch.source}</div>
                 <div style={{flex:1,height:20,background:"rgba(255,255,255,0.04)",borderRadius:4,overflow:"hidden",position:"relative"}}>
@@ -698,13 +698,13 @@ export default function GrowthDashboard(){
             <div style={{fontSize:10,color:"#71717A",marginBottom:16}}>Other Substacks recommending 10AMPRO — free subscriber acquisition</div>
             <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(3,1fr)",gap:10}}>
               {[
-                {name:"Hermanos Bilbao",subs:631,rev:"$0",color:"#F59E0B",badge:"⚠️ 631 subs · 0 paid"},
-                {name:"ARIAS FINANCIAL ACADEMY",subs:188,rev:"$1,360",color:"#FF6719",badge:"#2 all-time"},
-                {name:"Macrowise Newsletter",subs:80,rev:"$400",color:"#D4A843",badge:"finance niche"},
-                {name:"La Estrategia Emergente",subs:64,rev:"$0",color:"#818CF8",badge:"growing fast"},
-                {name:"Arca Digital",subs:11,rev:"$0",color:"#00F2EA",badge:"crypto niche"},
+                {name:"Hermanos Bilbao",subs:974,rev:"$0",color:"#F59E0B",badge:"⚠️ 974 subs · 0 paid"},
+                {name:"ARIAS FINANCIAL ACADEMY",subs:208,rev:"$1,840",color:"#FF6719",badge:"#1 by revenue"},
+                {name:"Macrowise Newsletter",subs:86,rev:"$400",color:"#D4A843",badge:"finance niche"},
+                {name:"La Estrategia Emergente",subs:90,rev:"$0",color:"#818CF8",badge:"high volume"},
+                {name:"Arca Digital",subs:15,rev:"$0",color:"#00F2EA",badge:"crypto niche"},
                 {name:"Investment Edge",subs:9,rev:"$0",color:"#A1A1AA",badge:"finance"},
-                {name:"Nicolás Fernández",subs:3,rev:"$0",color:"#71717A",badge:"co-host"},
+                {name:"FUTOPIX | Gabriel Bedoya",subs:7,rev:"$400",color:"#22C55E",badge:"high paid %"},
               ].map((r,i)=>(<div key={i} style={{background:"rgba(255,255,255,0.015)",border:`1px solid ${r.color}20`,borderRadius:8,padding:"12px 14px"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{fontSize:11,color:r.color,fontWeight:600}}>{r.name}</span><span style={{fontSize:8,color:r.color,background:`${r.color}15`,padding:"1px 6px",borderRadius:3,fontWeight:600}}>{r.badge}</span></div><div style={{fontSize:18,fontWeight:700,color:"#E4E4E7",fontFamily:"'Space Grotesk'"}}>{r.subs} subs</div>{r.rev!=="$0"&&<div style={{fontSize:10,color:"#22C55E",marginTop:2}}>→ {r.rev} revenue</div>}</div>))}
             </div>
           </div>
@@ -715,14 +715,14 @@ export default function GrowthDashboard(){
             <div style={{fontSize:10,color:"#71717A",marginBottom:16}}>Notes that drove subscriber acquisition</div>
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {[
+                {note:"Estar ocupado cuesta mucho $",author:"Hernán",subs:24,rev:"$0"},
                 {note:"El DNA de 10ampro",author:"Hernán",subs:17,rev:"$400"},
                 {note:"Tarifas, Tensiones y Tesoros",author:"Hernán",subs:17,rev:"$0"},
                 {note:"La tesis del 10x de 10ampro",author:"Hernán",subs:15,rev:"$0"},
-                {note:"Lo que miramos en el WhatsApp 10amalpha",author:"Hernán",subs:12,rev:"$0"},
-                {note:"We need Jordi on our pod",author:"Hernán",subs:11,rev:"$0"},
-                {note:"El ecosistema 10am está detonando...",author:"Guillermo",subs:11,rev:"$400"},
+                {note:"¿Y si el riesgo real fuera no arriesgar?",author:"Hernán",subs:12,rev:"$0"},
+                {note:"Esto es lo que siempre estamos mirando",author:"Hernán",subs:12,rev:"$0"},
                 {note:"El origen de las opciones",author:"Hernán",subs:11,rev:"$0"},
-                {note:"¿Y si el riesgo real fuera no arriesgar?",author:"Hernán",subs:10,rev:"$0"},
+                {note:"Disciplina, proceso, paciencia",author:"Guillermo",subs:11,rev:"$400"},
               ].map((n,i)=>(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 10px",background:i%2===0?"rgba(255,255,255,0.015)":"transparent",borderRadius:4}}>
                 <div style={{width:20,textAlign:"center",fontSize:11,color:"#71717A",fontWeight:600}}>{i+1}</div>
                 <div style={{flex:1,fontSize:11,color:"#A1A1AA"}}>{n.note}</div>
@@ -752,9 +752,10 @@ export default function GrowthDashboard(){
                     {m:"Oct 2025",subs:230,vis:4163,prev:173},
                     {m:"Nov 2025",subs:171,vis:3652,prev:230},
                     {m:"Dic 2025",subs:201,vis:3810,prev:171},
-                    {m:"Ene 2026",subs:605,vis:7201,prev:201},
-                    {m:"Feb 2026",subs:464,vis:6619,prev:605},
-                    {m:"Mar 2026",subs:917,vis:7666,prev:464},
+                    {m:"Ene 2026",subs:600,vis:7200,prev:201},
+                    {m:"Feb 2026",subs:459,vis:6616,prev:600},
+                    {m:"Mar 2026",subs:915,vis:7664,prev:459},
+                    {m:"Abr 2026",subs:991,vis:14435,prev:915},
                   ].map((r,i)=>{const conv=(r.subs/Math.max(r.vis,1)*100).toFixed(1);const delta=r.subs-r.prev;const pct=r.prev>10?((delta/r.prev)*100).toFixed(0):"-";return(<tr key={i} style={{background:i%2===0?"rgba(255,255,255,0.015)":"transparent"}}>
                     <td style={{padding:"8px 10px",color:r.partial?"#D4A843":"#A1A1AA",fontWeight:r.partial?700:400,fontSize:11}}>{r.m}</td>
                     <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:r.subs>=500?"#22C55E":r.subs>=200?"#D4A843":"#A1A1AA",fontFamily:"'Space Grotesk'",fontSize:14}}>{r.subs.toLocaleString()}</td>
