@@ -1,0 +1,6 @@
+build/
+stills/
+fonts/
+__pycache__/
+*.mp4
+*.wav
