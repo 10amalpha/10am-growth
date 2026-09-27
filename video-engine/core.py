@@ -1,5 +1,7 @@
-import skia, numpy as np, math
-W, H, FPS = 1080, 1920, 30
+import skia, numpy as np, math, os
+WIDE = os.environ.get('DD_ASPECT') == 'wide'
+W, H = (1920, 1080) if WIDE else (1080, 1920)
+FPS = 30
 
 def hx(h, a=1.0):
     return skia.Color4f(int(h[1:3],16)/255, int(h[3:5],16)/255, int(h[5:7],16)/255, a)

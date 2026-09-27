@@ -24,6 +24,9 @@ SCENES = [(5.2, s_open), (4.6, s_x), ..., (6.8, s_close)]   # last scene = CTA, 
 ```
 Outro (2.5 s, #1F4133, logo) and score are added automatically.
 
+## Landscape 16:9 (Substack / YouTube / web)
+Add `ASPECT = 'wide'` to the scene module → 1920×1080. `kit` switches layout automatically: object at `CX, CY = 560, 560` (left), text column centered at `TX = 1360` (chapter y 330–470, stamp y 640, lines y 770+). Use `TX` instead of `W/2` in custom scenes. Set `BD_SCALE = 0.82; BCX = CX` so the backdrop ring sits behind the object. Output name `_16x9_v1.mp4`. Reference: `scenes_hims.py`.
+
 ## Layout (safe zone for Reels: keep key text between y=260 and y=1620)
 - y 300–440: `chapter(c, lt, 'III', 'TÍTULO', 'SUBTÍTULO MONO')`
 - y ~900: object center (`CX, CY`)

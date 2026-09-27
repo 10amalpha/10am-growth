@@ -14,7 +14,8 @@ FONTS = {'Cinzel[wght].ttf': 'ofl/cinzel/Cinzel%5Bwght%5D.ttf',
 
 def env_for(mod):
     src = open(mod + '.py').read(); m = re.search(r"THEME\s*=\s*'(\w+)'", src)
-    e = dict(os.environ); e['DD_SCENES'] = mod; e['DD_THEME'] = m.group(1) if m else 'gold'; return e
+    a = re.search(r"ASPECT\s*=\s*'(\w+)'", src)
+    e = dict(os.environ); e['DD_SCENES'] = mod; e['DD_THEME'] = m.group(1) if m else 'gold'; e['DD_ASPECT'] = a.group(1) if a else 'tall'; return e
 
 def info(mod):
     code = "import render, json; print(json.dumps({'n': int(round(render.TOTAL*30)), 'durs': [d for d, _ in render.scenes.SCENES]}))"
@@ -33,10 +34,11 @@ elif cmd == 'stills':
     mod = sys.argv[2]; ts = sys.argv[3:]; os.makedirs('stills', exist_ok=True)
     subprocess.run([sys.executable, 'render.py', 'stills'] + ts, env=env_for(mod), check=True)
     from PIL import Image
-    ims = [Image.open(f'stills/still_{float(t):05.1f}.png').convert('RGB').resize((432, 768)) for t in ts]
-    cols = min(5, len(ims)); rows = (len(ims)+cols-1)//cols
-    sheet = Image.new('RGB', (432*cols, 768*rows))
-    for i, im in enumerate(ims): sheet.paste(im, ((i % cols)*432, (i//cols)*768))
+    wide = env_for(mod)['DD_ASPECT'] == 'wide'; tw, th, cols = ((768, 432, 3) if wide else (432, 768, 5))
+    ims = [Image.open(f'stills/still_{float(t):05.1f}.png').convert('RGB').resize((tw, th)) for t in ts]
+    cols = min(cols, len(ims)); rows = (len(ims)+cols-1)//cols
+    sheet = Image.new('RGB', (tw*cols, th*rows))
+    for i, im in enumerate(ims): sheet.paste(im, ((i % cols)*tw, (i//cols)*th))
     sheet.save('stills/sheet.jpg', quality=85); print('stills/sheet.jpg')
 elif cmd == 'render':
     mod = sys.argv[2]; n = info(mod)['n']; os.makedirs(f'build/{mod}', exist_ok=True)

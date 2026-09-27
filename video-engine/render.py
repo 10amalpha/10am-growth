@@ -8,7 +8,7 @@ STARTS = np.cumsum([0] + [d for d, _ in scenes.SCENES])
 
 def mk_vignette():
     s = skia.Surface(W, H); c = s.getCanvas(); c.clear(hx(BG))
-    sh = skia.GradientShader.MakeRadial((W/2, 880), 1150, [hx(VIGC).toColor(), hx(BG).toColor(), hx('#020202').toColor()], [0.0, 0.55, 1.0])
+    sh = skia.GradientShader.MakeRadial((W/2, H*0.46), max(W, H)*0.6, [hx(VIGC).toColor(), hx(BG).toColor(), hx('#020202').toColor()], [0.0, 0.55, 1.0])
     c.drawRect(skia.Rect(0, 0, W, H), skia.Paint(Shader=sh)); return s.makeImageSnapshot()
 VIG = mk_vignette()
 rng = np.random.default_rng(7)
@@ -41,7 +41,8 @@ def hud(c, t, idx):
     text(c, getattr(scenes, 'HUD_BR', '14.10.2026 · MEDELLÍN'), W-96, H-104, 'mono', 22, MUTED, 0.8, 0.2, 'r')
 
 def backdrop(c, t, a):
-    c.save(); c.translate(W/2, scenes.CY); c.rotate(t*3.0)
+    bs = getattr(scenes, 'BD_SCALE', 1.0)
+    c.save(); c.translate(getattr(scenes, 'BCX', W/2), scenes.CY); c.rotate(t*3.0); c.scale(bs, bs)
     ring = skia.Paint(Color4f=hx(SMOKE, 0.55*a), Style=skia.Paint.kStroke_Style, StrokeWidth=1.2, AntiAlias=True)
     for r in (440, 470): c.drawCircle(0, 0, r, ring)
     tick = skia.Paint(Color4f=hx(SMOKE, 0.7*a), StrokeWidth=1.2, AntiAlias=True)
