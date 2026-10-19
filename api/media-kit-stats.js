@@ -3,7 +3,7 @@
 // Returns, in one call:
 //   snapshot  → latest growth_snapshots row (followers per channel, filled monthly by Hernán)
 //   live      → YouTube subscribers/views + Instagram followers (live APIs)
-//   episodes  → long-form episode count (uploads >= MIN_EPISODE_MINUTES, Shorts excluded) + latest episode
+//   episodes  → episode count = highest "E###" in long-form titles (fallback: uploads >= MIN_EPISODE_MINUTES) + latest videos
 // Consumed weekly by the Claude scheduled task that refreshes anuncia10am/stats.js.
 
 const YT_API_KEY = process.env.YT_API_KEY || "AIzaSyANRsjsV-WdoLxM9yEz-yIgBFBdoUYPXCw";
@@ -84,9 +84,18 @@ async function getEpisodes(uploadsPlaylist) {
     }
   }
   episodes.sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1));
+  // Episode number = highest "E###" in long-form titles (Hernán numbers every podcast episode; El Día D talks etc. are unnumbered).
+  let maxEp = 0, maxEpVideo = null;
+  for (const e of episodes) {
+    const m = /\bE(\d{2,3})\b/.exec(e.title || "");
+    if (m && parseInt(m[1]) > maxEp) { maxEp = parseInt(m[1]); maxEpVideo = e; }
+  }
   const avgSeconds = episodes.length ? Math.round(episodes.reduce((s, e) => s + e.seconds, 0) / episodes.length) : 0;
   return {
-    count: episodes.length,
+    count: maxEp || episodes.length,          // numbered episode count (fallback: long-form count)
+    countMethod: maxEp ? "max E### in titles" : "long-form uploads",
+    latestNumbered: maxEpVideo ? { id: maxEpVideo.id, title: maxEpVideo.title, publishedAt: maxEpVideo.publishedAt } : null,
+    longFormCount: episodes.length,
     minMinutes: MIN_EPISODE_MINUTES,
     scannedUploads: ids.length,
     avgMinutes: Math.round(avgSeconds / 60),
